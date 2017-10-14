@@ -1,0 +1,47 @@
+{
+    "version": 1,
+    "name": "TV shows gateway",
+    "port": 8080,
+    "cache_ttl": 3600,
+    "timeout": "3s",
+    "endpoints": [
+        {
+            "endpoint": "/showrss/{id}",
+            "backend": [
+                {
+                    "host": [
+                        "http://showrss.info/"
+                    ],
+                    "url_pattern": "/user/schedule/{id}.rss",
+                    "encoding": "rss",
+                    "extra_config": {
+                        "github.com/devopsfaith/krakend-ratelimit/rate/proxy": {
+                            "maxRate": 1,
+                            "capacity": 1
+                        }
+                    }
+                },
+                {
+                    "host": [
+                        "http://showrss.info/"
+                    ],
+                    "url_pattern": "/user/{id}.rss",
+                    "encoding": "rss",
+                    "extra_config": {
+                        "github.com/devopsfaith/krakend-ratelimit/rate/proxy": {
+                            "maxRate": 2,
+                            "capacity": 2
+                        }
+                    }
+                }
+            ],
+            "extra_config": {
+                "github.com/devopsfaith/krakend-ratelimit/rate/router": {
+                    "maxRate": 50,
+                    "clientMaxRate": 5,
+                    "strategy": "ip"
+                }
+            }
+        }
+    ]
+}
