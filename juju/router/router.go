@@ -21,7 +21,11 @@ and http://en.wikipedia.org/wiki/Token_bucket for more details.
 */
 package router
 
-import "github.com/devopsfaith/krakend/config"
+import (
+	"fmt"
+
+	"github.com/devopsfaith/krakend/config"
+)
 
 // Namespace is the key to use to store and access the custom config data for the router
 const Namespace = "github.com/devopsfaith/krakend-ratelimit/juju/router"
@@ -50,16 +54,30 @@ func ConfigGetter(e config.ExtraConfig) interface{} {
 	}
 	cfg := Config{}
 	if v, ok := tmp["maxRate"]; ok {
-		cfg.MaxRate = int64(v.(float64))
+		switch val := v.(type) {
+		case int64:
+			cfg.MaxRate = val
+		case int:
+			cfg.MaxRate = int64(val)
+		case float64:
+			cfg.MaxRate = int64(val)
+		}
 	}
 	if v, ok := tmp["strategy"]; ok {
-		cfg.Strategy = v.(string)
+		cfg.Strategy = fmt.Sprintf("%v", v)
 	}
 	if v, ok := tmp["clientMaxRate"]; ok {
-		cfg.ClientMaxRate = int64(v.(float64))
+		switch val := v.(type) {
+		case int64:
+			cfg.ClientMaxRate = val
+		case int:
+			cfg.ClientMaxRate = int64(val)
+		case float64:
+			cfg.ClientMaxRate = int64(val)
+		}
 	}
 	if v, ok := tmp["key"]; ok {
-		cfg.Key = v.(string)
+		cfg.Key = fmt.Sprintf("%v", v)
 	}
 	return cfg
 }
