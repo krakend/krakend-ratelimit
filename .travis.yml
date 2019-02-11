@@ -4,8 +4,5 @@ go:
     - "1.11.x"
     - "1.10.x"
 
-before_install:
-  - make prepare
-
 script:
-    - make
+    - make prepare deps test
