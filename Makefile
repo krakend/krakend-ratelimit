@@ -1,4 +1,5 @@
 DEP_VERSION=0.5.0
+OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 
 all: deps test
 
