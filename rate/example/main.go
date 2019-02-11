@@ -9,6 +9,7 @@ import (
 	"github.com/devopsfaith/krakend/logging"
 	"github.com/devopsfaith/krakend/proxy"
 	krakendgin "github.com/devopsfaith/krakend/router/gin"
+	"github.com/devopsfaith/krakend/transport/http/client"
 	"github.com/gin-gonic/gin"
 
 	rateproxy "github.com/devopsfaith/krakend-ratelimit/rate/proxy"
@@ -39,7 +40,7 @@ func main() {
 
 	routerFactory := krakendgin.NewFactory(krakendgin.Config{
 		Engine:         gin.Default(),
-		ProxyFactory:   proxy.NewDefaultFactory(rateproxy.BackendFactory(proxy.CustomHTTPProxyFactory(proxy.NewHTTPClient)), logger),
+		ProxyFactory:   proxy.NewDefaultFactory(rateproxy.BackendFactory(proxy.CustomHTTPProxyFactory(client.NewHTTPClient)), logger),
 		Middlewares:    []gin.HandlerFunc{},
 		Logger:         logger,
 		HandlerFactory: raterouter.HandlerFactory,
