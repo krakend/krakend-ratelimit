@@ -96,10 +96,20 @@ func ConfigGetter(e config.ExtraConfig) interface{} {
 	}
 	cfg := Config{}
 	if v, ok := tmp["maxRate"]; ok {
-		cfg.MaxRate = v.(float64)
+		switch val := v.(type) {
+		case float64:
+			cfg.MaxRate = val
+		case int:
+			cfg.MaxRate = float64(val)
+		}
 	}
 	if v, ok := tmp["capacity"]; ok {
-		cfg.Capacity = int(v.(float64))
+		switch val := v.(type) {
+		case int:
+			cfg.Capacity = val
+		case float64:
+			cfg.Capacity = int(val)
+		}
 	}
 	return cfg
 }
