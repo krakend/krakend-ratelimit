@@ -22,8 +22,8 @@ func TestNewMiddleware_multipleNext(t *testing.T) {
 
 func TestNewMiddleware_zeroConfig(t *testing.T) {
 	for _, cfg := range []*config.Backend{
-		&config.Backend{},
-		&config.Backend{ExtraConfig: map[string]interface{}{Namespace: 42}},
+		{},
+		{ExtraConfig: map[string]interface{}{Namespace: 42}},
 	} {
 		resp := proxy.Response{}
 		mdw := NewMiddleware(cfg)
