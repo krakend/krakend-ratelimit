@@ -3,12 +3,22 @@ package krakendrate
 
 import (
 	"errors"
+	"runtime"
 	"sync"
 	"time"
 )
 
-// ErrLimited is the error returned when the rate limit has been exceded
-var ErrLimited = errors.New("ERROR: rate limit exceded")
+var (
+	// ErrLimited is the error returned when the rate limit has been exceded
+	ErrLimited = errors.New("ERROR: rate limit exceded")
+
+	DataTTL = 10 * time.Minute
+
+	now    = time.Now
+	stores = []*MemoryBackend{}
+	mu     = new(sync.RWMutex)
+	once   = new(sync.Once)
+)
 
 // Limiter defines a simple interface for a rate limiter
 type Limiter interface {
@@ -30,7 +40,13 @@ func NewMemoryBackend() *MemoryBackend {
 		lastAccess: map[string]time.Time{},
 		mu:         new(sync.RWMutex),
 	}
-	go m.autoCleanup()
+
+	mu.Lock()
+	stores = append(stores, m)
+	mu.Unlock()
+
+	once.Do(func() { go autoCleanup(DataTTL) })
+
 	return m
 }
 
@@ -61,21 +77,43 @@ func (m *MemoryBackend) Store(key string, v interface{}) error {
 	return nil
 }
 
-func (m *MemoryBackend) autoCleanup() {
-	for {
-		<-time.After(DataTTL)
-		m.mu.Lock()
-		for k, v := range m.lastAccess {
-			if time.Since(v) > DataTTL {
-				delete(m.data, k)
-				delete(m.lastAccess, k)
-			}
-		}
-		m.mu.Unlock()
-	}
+func (m *MemoryBackend) del(key string) {
+	delete(m.data, key)
+	delete(m.lastAccess, key)
 }
 
-var (
-	DataTTL = 10 * time.Minute
-	now     = time.Now
-)
+func autoCleanup(ttl time.Duration) {
+	for {
+		<-time.After(ttl)
+		mu.RLock()
+		if len(stores) < runtime.NumCPU() {
+			for _, store := range stores {
+				store.mu.Lock()
+				for k, v := range store.lastAccess {
+					if time.Since(v) > ttl {
+						store.del(k)
+					}
+				}
+				store.mu.Unlock()
+			}
+			mu.RUnlock()
+			continue
+		}
+
+		block := len(stores) / runtime.NumCPU()
+		for i := 0; i < runtime.NumCPU(); i++ {
+			go func(stores []*MemoryBackend) {
+				for _, store := range stores {
+					store.mu.Lock()
+					for k, v := range store.lastAccess {
+						if time.Since(v) > ttl {
+							store.del(k)
+						}
+					}
+					store.mu.Unlock()
+				}
+			}(stores[i*block : (i+1)*block])
+		}
+		mu.RUnlock()
+	}
+}
