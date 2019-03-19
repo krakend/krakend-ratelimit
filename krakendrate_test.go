@@ -18,7 +18,8 @@ func TestMemoryBackend(t *testing.T) {
 		t.Errorf("%d stores initialized", v)
 		return
 	}
-	total := 10000 * runtime.NumCPU()
+	total := 1000 * runtime.NumCPU()
+
 	for i := 0; i < total; i++ {
 		mb.Store(fmt.Sprintf("key-%d", i), i)
 	}
@@ -27,8 +28,8 @@ func TestMemoryBackend(t *testing.T) {
 		if !ok {
 			t.Errorf("key %d not present", i)
 		}
-		if v.(int) != i {
-			t.Errorf("unexpected value. want: %d, have: %d", i, v.(int))
+		if res, ok := v.(int); !ok || res != i {
+			t.Errorf("unexpected value. want: %d, have: %v", i, v)
 		}
 	}
 	<-time.After(2 * DataTTL)
