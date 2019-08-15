@@ -59,12 +59,12 @@ type MemoryBackend struct {
 
 // Load implements the Backend interface
 func (m *MemoryBackend) Load(key string) (interface{}, bool) {
-	m.mu.RLock()
+	m.mu.Lock()
 	v, ok := m.data[key]
 	if ok {
 		m.lastAccess[key] = now()
 	}
-	m.mu.RUnlock()
+	m.mu.Unlock()
 	return v, ok
 }
 
