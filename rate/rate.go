@@ -7,9 +7,11 @@ and http://en.wikipedia.org/wiki/Token_bucket for more details.
 package rate
 
 import (
+	"context"
+
 	"golang.org/x/time/rate"
 
-	"github.com/devopsfaith/krakend-ratelimit"
+	krakendrate "github.com/devopsfaith/krakend-ratelimit"
 )
 
 // NewLimiter creates a new Limiter
@@ -29,18 +31,13 @@ func (l Limiter) Allow() bool {
 
 // NewLimiterStore returns a LimiterStore using the received backend for persistence
 func NewLimiterStore(maxRate float64, capacity int, backend krakendrate.Backend) krakendrate.LimiterStore {
+	f := func() interface{} { return NewLimiter(maxRate, capacity) }
 	return func(t string) krakendrate.Limiter {
-		tmp, ok := backend.Load(t)
-		if !ok {
-			tb := NewLimiter(maxRate, capacity)
-			backend.Store(t, tb)
-			return tb
-		}
-		return tmp.(Limiter)
+		return backend.Load(t, f).(Limiter)
 	}
 }
 
 // NewMemoryStore returns a LimiterStore using the memory backend
 func NewMemoryStore(maxRate float64, capacity int) krakendrate.LimiterStore {
-	return NewLimiterStore(maxRate, capacity, krakendrate.NewMemoryBackend())
+	return NewLimiterStore(maxRate, capacity, krakendrate.DefaultShardedMemoryBackend(context.Background()))
 }
