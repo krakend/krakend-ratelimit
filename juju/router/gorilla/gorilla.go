@@ -48,7 +48,7 @@ func NewEndpointRateLimiterMw(tb juju.Limiter) EndpointMw {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if !tb.Allow() {
-				//c.AbortWithError(503, krakendrate.ErrLimited)
+				http.Error(w, krakendrate.ErrLimited.Error(), 503)
 				return
 			}
 			next(w, r)
@@ -85,11 +85,11 @@ func NewTokenLimiterMw(tokenExtractor TokenExtractor, limiterStore krakendrate.L
 		return func(w http.ResponseWriter, r *http.Request) {
 			tokenKey := tokenExtractor(w, r)
 			if tokenKey == "" {
-				//c.AbortWithError(http.StatusTooManyRequests, krakendrate.ErrLimited)
+				http.Error(w, krakendrate.ErrLimited.Error(), http.StatusTooManyRequests)
 				return
 			}
 			if !limiterStore(tokenKey).Allow() {
-				//c.AbortWithError(http.StatusTooManyRequests, krakendrate.ErrLimited)
+				http.Error(w, krakendrate.ErrLimited.Error(), http.StatusTooManyRequests)
 				return
 			}
 			next(w, r)
