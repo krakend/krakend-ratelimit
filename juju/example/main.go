@@ -5,15 +5,15 @@ import (
 	"log"
 	"os"
 
+	jujuproxy "github.com/devopsfaith/krakend-ratelimit/juju/proxy"
+	jujurouter "github.com/devopsfaith/krakend-ratelimit/juju/router/gin"
 	"github.com/devopsfaith/krakend/config"
 	"github.com/devopsfaith/krakend/logging"
 	"github.com/devopsfaith/krakend/proxy"
 	krakendgin "github.com/devopsfaith/krakend/router/gin"
 	"github.com/devopsfaith/krakend/transport/http/client"
+	http "github.com/devopsfaith/krakend/transport/http/server"
 	"github.com/gin-gonic/gin"
-
-	jujuproxy "github.com/devopsfaith/krakend-ratelimit/juju/proxy"
-	jujurouter "github.com/devopsfaith/krakend-ratelimit/juju/router/gin"
 )
 
 func main() {
@@ -44,6 +44,7 @@ func main() {
 		Middlewares:    []gin.HandlerFunc{},
 		Logger:         logger,
 		HandlerFactory: jujurouter.HandlerFactory,
+		RunServer:      http.RunServer,
 	})
 
 	routerFactory.New().Run(serviceConfig)

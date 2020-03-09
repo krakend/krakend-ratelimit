@@ -10,6 +10,7 @@ import (
 	"github.com/devopsfaith/krakend/proxy"
 	krakendgin "github.com/devopsfaith/krakend/router/gin"
 	"github.com/devopsfaith/krakend/transport/http/client"
+	http "github.com/devopsfaith/krakend/transport/http/server"
 	"github.com/gin-gonic/gin"
 
 	rateproxy "github.com/devopsfaith/krakend-ratelimit/rate/proxy"
@@ -44,6 +45,7 @@ func main() {
 		Middlewares:    []gin.HandlerFunc{},
 		Logger:         logger,
 		HandlerFactory: raterouter.HandlerFactory,
+		RunServer:      http.RunServer,
 	})
 
 	routerFactory.New().Run(serviceConfig)
