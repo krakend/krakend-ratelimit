@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"net"
 	"net/http"
 	"strings"
 
@@ -9,7 +10,7 @@ import (
 	krakendgin "github.com/devopsfaith/krakend/router/gin"
 	"github.com/gin-gonic/gin"
 
-	"github.com/devopsfaith/krakend-ratelimit"
+	krakendrate "github.com/devopsfaith/krakend-ratelimit"
 	"github.com/devopsfaith/krakend-ratelimit/juju"
 	"github.com/devopsfaith/krakend-ratelimit/juju/router"
 )
@@ -34,7 +35,7 @@ func NewRateLimiterMw(next krakendgin.HandlerFactory) krakendgin.HandlerFactory 
 		if cfg.ClientMaxRate > 0 {
 			switch strings.ToLower(cfg.Strategy) {
 			case "ip":
-				handlerFunc = NewIpLimiterMw(float64(cfg.ClientMaxRate), cfg.ClientMaxRate)(handlerFunc)
+				handlerFunc = NewIpLimiterWithKeyMw(cfg.Key, float64(cfg.ClientMaxRate), cfg.ClientMaxRate)(handlerFunc)
 			case "header":
 				handlerFunc = NewHeaderLimiterMw(cfg.Key, float64(cfg.ClientMaxRate), cfg.ClientMaxRate)(handlerFunc)
 			}
@@ -69,11 +70,33 @@ func NewIpLimiterMw(maxRate float64, capacity int64) EndpointMw {
 	return NewTokenLimiterMw(IPTokenExtractor, juju.NewMemoryStore(maxRate, capacity))
 }
 
+// NewIpLimiterWithKeyMw creates a token ratelimiter using the IP of the request as a token
+func NewIpLimiterWithKeyMw(header string, maxRate float64, capacity int64) EndpointMw {
+	if header == "" {
+		return NewIpLimiterMw(maxRate, capacity)
+	}
+	return NewTokenLimiterMw(NewIPTokenExtractor(header), juju.NewMemoryStore(maxRate, capacity))
+}
+
 // TokenExtractor defines the interface of the functions to use in order to extract a token for each request
 type TokenExtractor func(*gin.Context) string
 
 // IPTokenExtractor extracts the IP of the request
-func IPTokenExtractor(c *gin.Context) string { return strings.Split(c.ClientIP(), ":")[0] }
+func IPTokenExtractor(c *gin.Context) string { return c.ClientIP() }
+
+// NewIPTokenExtractor generates an IP TokenExtractor checking first for the contents of the passed header.
+// If nothing is found there, the regular IPTokenExtractor function is called.
+func NewIPTokenExtractor(header string) TokenExtractor {
+	return func(c *gin.Context) string {
+		if clientIP := strings.TrimSpace(strings.Split(c.Request.Header.Get(header), ",")[0]); clientIP != "" {
+			ip := strings.Split(clientIP, ":")[0]
+			if parsedIP := net.ParseIP(ip); parsedIP != nil {
+				return ip
+			}
+		}
+		return IPTokenExtractor(c)
+	}
+}
 
 // HeaderTokenExtractor returns a TokenExtractor that looks for the value of the designed header
 func HeaderTokenExtractor(header string) TokenExtractor {
