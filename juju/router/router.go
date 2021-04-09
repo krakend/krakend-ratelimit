@@ -6,7 +6,7 @@ Sample endpoint extra config
 	...
 	"extra_config": {
 		...
-		"github.com/devopsfaith/krakend-ratelimit/rate/router": {
+		"github.com/devopsfaith/krakend-ratelimit/juju/router": {
 			"maxRate": 2000,
 			"strategy": "header",
 			"clientMaxRate": 100,
