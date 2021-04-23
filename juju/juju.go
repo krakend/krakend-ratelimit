@@ -9,6 +9,8 @@ package juju
 import (
 	"context"
 
+	"time"
+
 	"github.com/juju/ratelimit"
 
 	krakendrate "github.com/devopsfaith/krakend-ratelimit"
@@ -17,6 +19,10 @@ import (
 // NewLimiter creates a new Limiter
 func NewLimiter(maxRate float64, capacity int64) Limiter {
 	return Limiter{ratelimit.NewBucketWithRate(maxRate, capacity)}
+}
+
+func NewLimiterDuration(fillInterval time.Duration, capacity int64) Limiter {
+	return Limiter{ratelimit.NewBucketWithQuantum(fillInterval, capacity, capacity)}
 }
 
 // Limiter is a simple wrapper over the ratelimit.Bucket struct
@@ -37,7 +43,18 @@ func NewLimiterStore(maxRate float64, capacity int64, backend krakendrate.Backen
 	}
 }
 
+func NewLimiterDurationStore(fillInterval time.Duration, capacity int64, backend krakendrate.Backend) krakendrate.LimiterStore {
+	f := func() interface{} { return NewLimiterDuration(fillInterval, capacity) }
+	return func(t string) krakendrate.Limiter {
+		return backend.Load(t, f).(Limiter)
+	}
+}
+
 // NewMemoryStore returns a LimiterStore using the memory backend
 func NewMemoryStore(maxRate float64, capacity int64) krakendrate.LimiterStore {
 	return NewLimiterStore(maxRate, capacity, krakendrate.DefaultShardedMemoryBackend(context.Background()))
+}
+
+func NewMemoryDurationStore(fillInterval time.Duration, capacity int64) krakendrate.LimiterStore {
+	return NewLimiterDurationStore(fillInterval, capacity, krakendrate.DefaultShardedMemoryBackend(context.Background()))
 }

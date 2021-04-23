@@ -22,6 +22,7 @@ and http://en.wikipedia.org/wiki/Token_bucket for more details.
 package router
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/devopsfaith/krakend/config"
@@ -32,10 +33,22 @@ const Namespace = "github.com/devopsfaith/krakend-ratelimit/juju/router"
 
 // Config is the custom config struct containing the params for the router middlewares
 type Config struct {
-	MaxRate       int64
-	Strategy      string
-	ClientMaxRate int64
-	Key           string
+	MaxRate           int64
+	Strategy          string
+	ClientMaxRate     int64
+	Key               string
+	TierConfiguration *TierConfiguration
+}
+
+type TierConfiguration struct {
+	JwtClaim string
+	Duration string
+	Tiers    []Tier
+}
+
+type Tier struct {
+	Name  string
+	Limit int64
 }
 
 // ZeroCfg is the zero value for the Config struct
@@ -78,6 +91,20 @@ func ConfigGetter(e config.ExtraConfig) interface{} {
 	}
 	if v, ok := tmp["key"]; ok {
 		cfg.Key = fmt.Sprintf("%v", v)
+	}
+	if v, ok := tmp["tierConfiguration"]; ok {
+		jsonbody, err := json.Marshal(v)
+		if err != nil {
+			fmt.Println(err)
+			return ZeroCfg
+		}
+
+		tierConfiguration := TierConfiguration{}
+		if err := json.Unmarshal(jsonbody, &tierConfiguration); err != nil {
+			fmt.Println(err)
+			return ZeroCfg
+		}
+		cfg.TierConfiguration = &tierConfiguration
 	}
 	return cfg
 }
