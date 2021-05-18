@@ -41,8 +41,9 @@ type Config struct {
 }
 
 type TierConfiguration struct {
+	Strategy   string
+	Key        string
 	HeaderTier string
-	HeaderUser string
 	Duration   string
 	Tiers      []Tier
 }

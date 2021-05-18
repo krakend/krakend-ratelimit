@@ -43,7 +43,8 @@
                 "github.com/devopsfaith/krakend-ratelimit/juju/router": {
                     "tierConfiguration": {
                         "headerTier": "x-tier",
-                        "headerUser": "x-user",
+                        "strategy": "header",
+                        "key": "x-user",
                         "duration": "1m",
                         "tiers": [
                             {
