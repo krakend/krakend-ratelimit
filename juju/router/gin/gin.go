@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"context"
 	"log"
 	"net"
 	"net/http"
@@ -89,15 +90,13 @@ func NewIpLimiterWithKeyMw(header string, maxRate float64, capacity int64) Endpo
 }
 
 func NewTierLimiterMw(tierConfiguration *router.TierConfiguration, fillInterval time.Duration) EndpointMw {
-	var stores = map[string]krakendrate.LimiterStore{}
-	var capacities = map[string]int64{}
+	var storesPerTier = krakendrate.NewShardedMemoryBackend(context.Background(), 256, fillInterval, krakendrate.PseudoFNV64a)
 	for _, tier := range tierConfiguration.Tiers {
 		if tier.Limit > 0 {
-			stores[tier.Name] = nil
-			capacities[tier.Name] = tier.Limit
+			storesPerTier.Store(tier.Name, juju.NewMemoryDurationStore(fillInterval, tier.Limit))
 		}
 	}
-	return NewTokenLimiterPerTierMw(HeadersTokenExtractor([]string{tierConfiguration.HeaderTier, tierConfiguration.HeaderUser}), fillInterval, stores, capacities)
+	return NewTokenLimiterPerTierMw(HeadersTokenExtractor([]string{tierConfiguration.HeaderTier, tierConfiguration.HeaderUser}), fillInterval, storesPerTier)
 }
 
 // TokenExtractor defines the interface of the functions to use in order to extract a token for each request
@@ -154,7 +153,8 @@ func NewTokenLimiterMw(tokenExtractor TokenExtractor, limiterStore krakendrate.L
 	}
 }
 
-func NewTokenLimiterPerTierMw(tokenExtractor TokenExtractor, fillInterval time.Duration, mapLimiterStore map[string]krakendrate.LimiterStore, mapCapacities map[string]int64) EndpointMw {
+func NewTokenLimiterPerTierMw(tokenExtractor TokenExtractor, fillInterval time.Duration, storesPerTier *krakendrate.ShardedMemoryBackend) EndpointMw {
+	var noResult = func() interface{} { return nil }
 	return func(next gin.HandlerFunc) gin.HandlerFunc {
 		return func(c *gin.Context) {
 			tokenKey := tokenExtractor(c)
@@ -162,16 +162,16 @@ func NewTokenLimiterPerTierMw(tokenExtractor TokenExtractor, fillInterval time.D
 				c.AbortWithError(http.StatusTooManyRequests, krakendrate.ErrLimited)
 				return
 			}
-			tierName := strings.Split(tokenKey, "-")[0]
-			_, tierNameExists := mapLimiterStore[tierName]
-			if tierNameExists {
-				if mapLimiterStore[tierName] == nil {
-					mapLimiterStore[tierName] = juju.NewMemoryDurationStore(fillInterval, mapCapacities[tierName])
-				}
-				if !mapLimiterStore[tierName](tokenKey).Allow() {
+			tokenKeyParts := strings.Split(tokenKey, "-")
+			tierName, user := tokenKeyParts[0], tokenKeyParts[1]
+			tierLimiter := storesPerTier.Load(tierName, noResult)
+			if tierLimiter != nil {
+				if !tierLimiter.(krakendrate.LimiterStore)(user).Allow() {
 					c.AbortWithError(http.StatusTooManyRequests, krakendrate.ErrLimited)
 					return
 				}
+			} else {
+				log.Printf("Tier %s does not exist.", tierName)
 			}
 			next(c)
 		}
