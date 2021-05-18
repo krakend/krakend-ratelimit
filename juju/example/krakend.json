@@ -7,6 +7,10 @@
     "endpoints": [
         {
             "endpoint": "/showrss/{id}",
+            "headers_to_pass": [
+                "x-user",
+                "x-tier"
+            ],
             "backend": [
                 {
                     "host": [
@@ -38,7 +42,8 @@
             "extra_config": {
                 "github.com/devopsfaith/krakend-ratelimit/juju/router": {
                     "tierConfiguration": {
-                        "jwtClaim": "tier",
+                        "headerTier": "x-tier",
+                        "headerUser": "x-user",
                         "duration": "1m",
                         "tiers": [
                             {

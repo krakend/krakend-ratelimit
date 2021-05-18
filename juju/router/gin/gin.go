@@ -1,7 +1,6 @@
 package gin
 
 import (
-	"encoding/base64"
 	"log"
 	"net"
 	"net/http"
@@ -16,8 +15,6 @@ import (
 	krakendrate "github.com/devopsfaith/krakend-ratelimit"
 	"github.com/devopsfaith/krakend-ratelimit/juju"
 	"github.com/devopsfaith/krakend-ratelimit/juju/router"
-
-	"github.com/tidwall/gjson"
 )
 
 // HandlerFactory is the out-of-the-box basic ratelimit handler factory using the default krakend endpoint
@@ -30,7 +27,7 @@ func NewRateLimiterMw(next krakendgin.HandlerFactory) krakendgin.HandlerFactory 
 		handlerFunc := next(remote, p)
 
 		cfg := router.ConfigGetter(remote.ExtraConfig).(router.Config)
-		if cfg == router.ZeroCfg || (cfg.MaxRate <= 0 && cfg.ClientMaxRate <= 0) {
+		if cfg == router.ZeroCfg || (cfg.MaxRate <= 0 && cfg.ClientMaxRate <= 0 || cfg.TierConfiguration == nil) {
 			return handlerFunc
 		}
 
@@ -50,7 +47,7 @@ func NewRateLimiterMw(next krakendgin.HandlerFactory) krakendgin.HandlerFactory 
 			if err != nil {
 				log.Printf("%s => Tier Configuration will be ignored.", err)
 			} else {
-				handlerFunc = NewJwtClaimLimiterMw(cfg.TierConfiguration, duration)(handlerFunc)
+				handlerFunc = NewTierLimiterMw(cfg.TierConfiguration, duration)(handlerFunc)
 			}
 		}
 		return handlerFunc
@@ -91,7 +88,7 @@ func NewIpLimiterWithKeyMw(header string, maxRate float64, capacity int64) Endpo
 	return NewTokenLimiterMw(NewIPTokenExtractor(header), juju.NewMemoryStore(maxRate, capacity))
 }
 
-func NewJwtClaimLimiterMw(tierConfiguration *router.TierConfiguration, fillInterval time.Duration) EndpointMw {
+func NewTierLimiterMw(tierConfiguration *router.TierConfiguration, fillInterval time.Duration) EndpointMw {
 	var stores = map[string]krakendrate.LimiterStore{}
 	var capacities = map[string]int64{}
 	for _, tier := range tierConfiguration.Tiers {
@@ -100,7 +97,7 @@ func NewJwtClaimLimiterMw(tierConfiguration *router.TierConfiguration, fillInter
 			capacities[tier.Name] = tier.Limit
 		}
 	}
-	return NewTokenLimiterPerPlanMw(JwtClaimTokenExtractor(tierConfiguration.JwtClaim), fillInterval, stores, capacities)
+	return NewTokenLimiterPerTierMw(HeadersTokenExtractor([]string{tierConfiguration.HeaderTier, tierConfiguration.HeaderUser}), fillInterval, stores, capacities)
 }
 
 // TokenExtractor defines the interface of the functions to use in order to extract a token for each request
@@ -128,6 +125,17 @@ func HeaderTokenExtractor(header string) TokenExtractor {
 	return func(c *gin.Context) string { return c.Request.Header.Get(header) }
 }
 
+// HeadersTokenExtractor returns a TokenExtractor that looks for the values of the designed headers
+func HeadersTokenExtractor(headers []string) TokenExtractor {
+	return func(c *gin.Context) string {
+		var headerValues = make([]string, len(headers))
+		for i, header := range headers {
+			headerValues[i] = c.Request.Header.Get(header)
+		}
+		return strings.Join(headerValues, "-")
+	}
+}
+
 // NewTokenLimiterMw returns a token based ratelimiting endpoint middleware with the received TokenExtractor and LimiterStore
 func NewTokenLimiterMw(tokenExtractor TokenExtractor, limiterStore krakendrate.LimiterStore) EndpointMw {
 	return func(next gin.HandlerFunc) gin.HandlerFunc {
@@ -146,7 +154,7 @@ func NewTokenLimiterMw(tokenExtractor TokenExtractor, limiterStore krakendrate.L
 	}
 }
 
-func NewTokenLimiterPerPlanMw(tokenExtractor TokenExtractor, fillInterval time.Duration, mapLimiterStore map[string]krakendrate.LimiterStore, mapCapacities map[string]int64) EndpointMw {
+func NewTokenLimiterPerTierMw(tokenExtractor TokenExtractor, fillInterval time.Duration, mapLimiterStore map[string]krakendrate.LimiterStore, mapCapacities map[string]int64) EndpointMw {
 	return func(next gin.HandlerFunc) gin.HandlerFunc {
 		return func(c *gin.Context) {
 			tokenKey := tokenExtractor(c)
@@ -167,37 +175,5 @@ func NewTokenLimiterPerPlanMw(tokenExtractor TokenExtractor, fillInterval time.D
 			}
 			next(c)
 		}
-	}
-}
-
-func JwtClaimTokenExtractor(jwtClaimName string) TokenExtractor {
-	return func(c *gin.Context) string {
-		bearer := c.Request.Header.Get("Authorization")
-		if bearer != "" && strings.Count(bearer, ".") == 2 {
-			start := strings.Index(bearer, ".")
-			end := strings.LastIndex(bearer, ".")
-			rawPayload, err := base64.RawStdEncoding.DecodeString(bearer[start+1 : end])
-			if err != nil {
-				log.Println("Invalid JWT payload (not Base64)")
-				return ""
-			}
-			jsonPayload := string(rawPayload)
-			if !gjson.Valid(jsonPayload) {
-				log.Println("Invalid JWT payload (not JSON)")
-				return ""
-			}
-			jwtClaim := gjson.Get(jsonPayload, jwtClaimName)
-			sub := gjson.Get(jsonPayload, "sub")
-			if !jwtClaim.Exists() {
-				log.Printf("Claim '%s' not found in payload", jwtClaimName)
-				return ""
-			}
-			if !sub.Exists() {
-				log.Println("Claim 'sub' not found in payload")
-				return ""
-			}
-			return jwtClaim.String() + "-" + sub.String()
-		}
-		return ""
 	}
 }

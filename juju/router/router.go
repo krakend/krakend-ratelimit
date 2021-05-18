@@ -41,9 +41,10 @@ type Config struct {
 }
 
 type TierConfiguration struct {
-	JwtClaim string
-	Duration string
-	Tiers    []Tier
+	HeaderTier string
+	HeaderUser string
+	Duration   string
+	Tiers      []Tier
 }
 
 type Tier struct {
