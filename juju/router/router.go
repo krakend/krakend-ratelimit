@@ -24,7 +24,7 @@ package router
 import (
 	"fmt"
 
-	"github.com/devopsfaith/krakend/config"
+	"github.com/luraproject/lura/config"
 )
 
 // Namespace is the key to use to store and access the custom config data for the router
