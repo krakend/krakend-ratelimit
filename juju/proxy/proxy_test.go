@@ -5,10 +5,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/devopsfaith/krakend/config"
-	"github.com/devopsfaith/krakend/proxy"
-
-	"github.com/devopsfaith/krakend-ratelimit"
+	krakendrate "github.com/devopsfaith/krakend-ratelimit"
+	"github.com/luraproject/lura/config"
+	"github.com/luraproject/lura/proxy"
 )
 
 func TestNewMiddleware_multipleNext(t *testing.T) {

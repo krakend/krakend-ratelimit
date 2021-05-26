@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/devopsfaith/krakend/config"
-	"github.com/devopsfaith/krakend/proxy"
+	"github.com/luraproject/lura/config"
+	"github.com/luraproject/lura/proxy"
 )
 
 func BenchmarkNewMiddleware_ok(b *testing.B) {

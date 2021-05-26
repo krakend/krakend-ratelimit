@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/devopsfaith/krakend/config"
-	"github.com/devopsfaith/krakend/proxy"
-	krakendgin "github.com/devopsfaith/krakend/router/gin"
 	"github.com/gin-gonic/gin"
+	"github.com/luraproject/lura/config"
+	"github.com/luraproject/lura/proxy"
+	krakendgin "github.com/luraproject/lura/router/gin"
 
-	"github.com/devopsfaith/krakend-ratelimit"
+	krakendrate "github.com/devopsfaith/krakend-ratelimit"
 	"github.com/devopsfaith/krakend-ratelimit/rate"
 	"github.com/devopsfaith/krakend-ratelimit/rate/router"
 )
