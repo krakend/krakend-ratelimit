@@ -7,6 +7,10 @@
     "endpoints": [
         {
             "endpoint": "/showrss/{id}",
+            "headers_to_pass": [
+                "x-user",
+                "x-tier"
+            ],
             "backend": [
                 {
                     "host": [
@@ -37,6 +41,30 @@
             ],
             "extra_config": {
                 "github.com/devopsfaith/krakend-ratelimit/juju/router": {
+                    "tierConfiguration": {
+                        "headerTier": "x-tier",
+                        "strategy": "header",
+                        "key": "x-user",
+                        "duration": "1m",
+                        "tiers": [
+                            {
+                                "name": "unlimited",
+                                "limit": 0
+                            },
+                            {
+                                "name": "gold",
+                                "limit": 50
+                            },
+                            {
+                                "name": "silver",
+                                "limit": 20
+                            },
+                            {
+                                "name": "bronze",
+                                "limit": 5
+                            }
+                        ]
+                    },
                     "maxRate": 50,
                     "clientMaxRate": 5,
                     "strategy": "ip"

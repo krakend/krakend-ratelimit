@@ -30,4 +30,7 @@ func TestConfigGetter(t *testing.T) {
 	if cfg.Key != "" {
 		t.Errorf("wrong value for Key. Want: '', have: %s", cfg.Key)
 	}
+	if cfg.TierConfiguration != nil {
+		t.Errorf("wrong value for TierConfiguration. Want: <nil>, have: %+v", cfg.TierConfiguration)
+	}
 }
