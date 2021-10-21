@@ -37,11 +37,11 @@ package proxy
 import (
 	"context"
 
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/proxy"
+	"github.com/luraproject/lura/v2/config"
+	"github.com/luraproject/lura/v2/proxy"
 
-	krakendrate "github.com/devopsfaith/krakend-ratelimit"
 	"github.com/devopsfaith/krakend-ratelimit/juju"
+	krakendrate "github.com/devopsfaith/krakend-ratelimit/v2"
 )
 
 // Namespace is the key to use to store and access the custom config data for the proxy

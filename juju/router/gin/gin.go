@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/proxy"
-	krakendgin "github.com/luraproject/lura/router/gin"
+	"github.com/luraproject/lura/v2/config"
+	"github.com/luraproject/lura/v2/proxy"
+	krakendgin "github.com/luraproject/lura/v2/router/gin"
 
-	krakendrate "github.com/devopsfaith/krakend-ratelimit"
-	"github.com/devopsfaith/krakend-ratelimit/juju"
-	"github.com/devopsfaith/krakend-ratelimit/juju/router"
+	krakendrate "github.com/devopsfaith/krakend-ratelimit/v2"
+	"github.com/devopsfaith/krakend-ratelimit/v2/juju"
+	"github.com/devopsfaith/krakend-ratelimit/v2/juju/router"
 )
 
 // HandlerFactory is the out-of-the-box basic ratelimit handler factory using the default krakend endpoint
