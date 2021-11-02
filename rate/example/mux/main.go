@@ -7,6 +7,7 @@ import (
 
 	rateproxy "github.com/devopsfaith/krakend-ratelimit/rate/proxy"
 	raterouter "github.com/devopsfaith/krakend-ratelimit/rate/router/mux"
+
 	"github.com/luraproject/lura/config"
 	"github.com/luraproject/lura/logging"
 	"github.com/luraproject/lura/proxy"

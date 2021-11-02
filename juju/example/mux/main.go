@@ -7,6 +7,7 @@ import (
 
 	jujuproxy "github.com/devopsfaith/krakend-ratelimit/juju/proxy"
 	jujurouter "github.com/devopsfaith/krakend-ratelimit/juju/router/mux"
+
 	"github.com/luraproject/lura/config"
 	"github.com/luraproject/lura/logging"
 	"github.com/luraproject/lura/proxy"
