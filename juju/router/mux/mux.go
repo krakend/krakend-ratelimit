@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"strings"
 
+	krakendrate "github.com/devopsfaith/krakend-ratelimit"
+	"github.com/devopsfaith/krakend-ratelimit/juju"
+	"github.com/devopsfaith/krakend-ratelimit/juju/router"
+
 	"github.com/luraproject/lura/config"
 	"github.com/luraproject/lura/logging"
 	"github.com/luraproject/lura/proxy"
 	luramux "github.com/luraproject/lura/router/mux"
-
-	krakendrate "github.com/devopsfaith/krakend-ratelimit"
-	"github.com/devopsfaith/krakend-ratelimit/juju"
-	"github.com/devopsfaith/krakend-ratelimit/juju/router"
 )
 
 // HandlerFactoryWithLogger is the out-of-the-box basic ratelimit handler factory using the default krakend endpoint
