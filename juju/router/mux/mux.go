@@ -91,11 +91,11 @@ type TokenExtractor func(*http.Request) string
 // IPTokenExtractor extracts the IP of the request
 func IPTokenExtractor(r *http.Request) string {
 	var ip string = r.Header.Get("X-Forwarded-For")
-	if len(ip) < 0 {
+	if len(ip) > 0 {
 		return ip
 	}
 	ip = r.Header.Get("X-Real-Ip")
-	if len(ip) < 0 {
+	if len(ip) > 0 {
 		return ip
 	}
 	return r.RemoteAddr
