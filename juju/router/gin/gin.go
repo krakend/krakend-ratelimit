@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/luraproject/lura/v2/config"
+	"github.com/luraproject/lura/v2/logging"
 	"github.com/luraproject/lura/v2/proxy"
 	krakendgin "github.com/luraproject/lura/v2/router/gin"
 
@@ -17,26 +18,37 @@ import (
 
 // HandlerFactory is the out-of-the-box basic ratelimit handler factory using the default krakend endpoint
 // handler for the gin router
-var HandlerFactory = NewRateLimiterMw(krakendgin.EndpointHandler)
+var HandlerFactory = NewRateLimiterMw(logging.NoOp, krakendgin.EndpointHandler)
 
 // NewRateLimiterMw builds a rate limiting wrapper over the received handler factory.
-func NewRateLimiterMw(next krakendgin.HandlerFactory) krakendgin.HandlerFactory {
+func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) krakendgin.HandlerFactory {
 	return func(remote *config.EndpointConfig, p proxy.Proxy) gin.HandlerFunc {
+		logPrefix := "[ENDPOINT: " + remote.Endpoint + "][Ratelimit]"
 		handlerFunc := next(remote, p)
 
-		cfg := router.ConfigGetter(remote.ExtraConfig).(router.Config)
-		if cfg == router.ZeroCfg || (cfg.MaxRate <= 0 && cfg.ClientMaxRate <= 0) {
+		cfg, err := router.ConfigGetter(remote.ExtraConfig)
+		if err != nil {
+			if err != router.ErrNoExtraCfg {
+				logger.Error(logPrefix, err)
+			}
+			return handlerFunc
+		}
+
+		if cfg.MaxRate <= 0 && cfg.ClientMaxRate <= 0 {
 			return handlerFunc
 		}
 
 		if cfg.MaxRate > 0 {
+			logger.Debug(logPrefix, "Rate limit enabled")
 			handlerFunc = NewEndpointRateLimiterMw(juju.NewLimiter(float64(cfg.MaxRate), cfg.MaxRate))(handlerFunc)
 		}
 		if cfg.ClientMaxRate > 0 {
 			switch strings.ToLower(cfg.Strategy) {
 			case "ip":
+				logger.Debug(logPrefix, "IP-based rate limit enabled")
 				handlerFunc = NewIpLimiterWithKeyMw(cfg.Key, float64(cfg.ClientMaxRate), cfg.ClientMaxRate)(handlerFunc)
 			case "header":
+				logger.Debug(logPrefix, "Header-based rate limit enabled")
 				handlerFunc = NewHeaderLimiterMw(cfg.Key, float64(cfg.ClientMaxRate), cfg.ClientMaxRate)(handlerFunc)
 			}
 		}

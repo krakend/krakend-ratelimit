@@ -39,8 +39,14 @@ func main() {
 	}
 
 	routerFactory := krakendgin.NewFactory(krakendgin.Config{
-		Engine:         gin.Default(),
-		ProxyFactory:   proxy.NewDefaultFactory(jujuproxy.BackendFactory(proxy.CustomHTTPProxyFactory(client.NewHTTPClient)), logger),
+		Engine: gin.Default(),
+		ProxyFactory: proxy.NewDefaultFactory(
+			jujuproxy.BackendFactory(
+				logger,
+				proxy.CustomHTTPProxyFactory(client.NewHTTPClient),
+			),
+			logger,
+		),
 		Middlewares:    []gin.HandlerFunc{},
 		Logger:         logger,
 		HandlerFactory: jujurouter.HandlerFactory,

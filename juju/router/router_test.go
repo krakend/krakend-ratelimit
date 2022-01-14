@@ -17,7 +17,7 @@ func TestConfigGetter(t *testing.T) {
 	if err := json.Unmarshal(serializedCfg, &dat); err != nil {
 		t.Error(err.Error())
 	}
-	cfg := ConfigGetter(dat).(Config)
+	cfg, err := ConfigGetter(dat)
 	if cfg.MaxRate != 10 {
 		t.Errorf("wrong value for MaxRate. Want: 10, have: %d", cfg.MaxRate)
 	}
@@ -29,5 +29,8 @@ func TestConfigGetter(t *testing.T) {
 	}
 	if cfg.Key != "" {
 		t.Errorf("wrong value for Key. Want: '', have: %s", cfg.Key)
+	}
+	if err != nil {
+		t.Error(err)
 	}
 }
