@@ -16,7 +16,7 @@ Sample backend extra config
 
 Adding the middleware to your proxy stack
 
-	import rate "github.com/devopsfaith/krakend-ratelimit/rate/proxy"
+	import rate "github.com/devopsfaith/krakend-ratelimit/v2/rate/proxy"
 
 	...
 
@@ -37,11 +37,11 @@ package proxy
 import (
 	"context"
 
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/proxy"
+	"github.com/luraproject/lura/v2/config"
+	"github.com/luraproject/lura/v2/proxy"
 
-	krakendrate "github.com/devopsfaith/krakend-ratelimit"
-	"github.com/devopsfaith/krakend-ratelimit/rate"
+	krakendrate "github.com/devopsfaith/krakend-ratelimit/v2"
+	"github.com/devopsfaith/krakend-ratelimit/v2/rate"
 )
 
 // Namespace is the key to use to store and access the custom config data for the proxy

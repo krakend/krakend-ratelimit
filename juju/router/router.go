@@ -22,9 +22,10 @@ and http://en.wikipedia.org/wiki/Token_bucket for more details.
 package router
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/luraproject/lura/config"
+	"github.com/luraproject/lura/v2/config"
 )
 
 // Namespace is the key to use to store and access the custom config data for the router
@@ -41,16 +42,19 @@ type Config struct {
 // ZeroCfg is the zero value for the Config struct
 var ZeroCfg = Config{}
 
-// ConfigGetter implements the config.ConfigGetter interface. It parses the extra config for the
-// rate adapter and returns a ZeroCfg if something goes wrong.
-func ConfigGetter(e config.ExtraConfig) interface{} {
+var ErrNoExtraCfg = errors.New("no extra config")
+var ErrWrongExtraCfg = errors.New("wrong extra config")
+
+// ConfigGetter parses the extra config for the rate adapter and
+// returns a ZeroCfg and an error if something goes wrong.
+func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	v, ok := e[Namespace]
 	if !ok {
-		return ZeroCfg
+		return ZeroCfg, ErrNoExtraCfg
 	}
 	tmp, ok := v.(map[string]interface{})
 	if !ok {
-		return ZeroCfg
+		return ZeroCfg, ErrWrongExtraCfg
 	}
 	cfg := Config{}
 	if v, ok := tmp["maxRate"]; ok {
@@ -79,5 +83,5 @@ func ConfigGetter(e config.ExtraConfig) interface{} {
 	if v, ok := tmp["key"]; ok {
 		cfg.Key = fmt.Sprintf("%v", v)
 	}
-	return cfg
+	return cfg, nil
 }

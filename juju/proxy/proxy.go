@@ -36,12 +36,14 @@ package proxy
 
 import (
 	"context"
+	"errors"
 
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/proxy"
+	"github.com/luraproject/lura/v2/config"
+	"github.com/luraproject/lura/v2/logging"
+	"github.com/luraproject/lura/v2/proxy"
 
-	krakendrate "github.com/devopsfaith/krakend-ratelimit"
-	"github.com/devopsfaith/krakend-ratelimit/juju"
+	krakendrate "github.com/devopsfaith/krakend-ratelimit/v2"
+	"github.com/devopsfaith/krakend-ratelimit/v2/juju"
 )
 
 // Namespace is the key to use to store and access the custom config data for the proxy
@@ -54,19 +56,27 @@ type Config struct {
 }
 
 // BackendFactory adds a ratelimiting middleware wrapping the internal factory
-func BackendFactory(next proxy.BackendFactory) proxy.BackendFactory {
+func BackendFactory(logger logging.Logger, next proxy.BackendFactory) proxy.BackendFactory {
 	return func(cfg *config.Backend) proxy.Proxy {
-		return NewMiddleware(cfg)(next(cfg))
+		return NewMiddleware(logger, cfg)(next(cfg))
 	}
 }
 
 // NewMiddleware builds a middleware based on the extra config params or fallbacks to the next proxy
-func NewMiddleware(remote *config.Backend) proxy.Middleware {
-	cfg := ConfigGetter(remote.ExtraConfig).(Config)
-	if cfg == ZeroCfg || cfg.MaxRate <= 0 {
+func NewMiddleware(logger logging.Logger, remote *config.Backend) proxy.Middleware {
+	logPrefix := "[BACKEND: " + remote.URLPattern + "][Ratelimit]"
+	cfg, err := ConfigGetter(remote.ExtraConfig)
+	if err != nil {
+		if err != ErrNoExtraCfg {
+			logger.Error(logPrefix, err)
+		}
+		return proxy.EmptyMiddleware
+	}
+	if cfg.MaxRate <= 0 {
 		return proxy.EmptyMiddleware
 	}
 	tb := juju.NewLimiter(cfg.MaxRate, cfg.Capacity)
+	logger.Debug(logPrefix, "Enabling the rate limiter")
 	return func(next ...proxy.Proxy) proxy.Proxy {
 		if len(next) > 1 {
 			panic(proxy.ErrTooManyProxies)
@@ -83,16 +93,19 @@ func NewMiddleware(remote *config.Backend) proxy.Middleware {
 // ZeroCfg is the zero value for the Config struct
 var ZeroCfg = Config{}
 
-// ConfigGetter implements the config.ConfigGetter interface. It parses the extra config for the
-// rate adapter and returns a ZeroCfg if something goes wrong.
-func ConfigGetter(e config.ExtraConfig) interface{} {
+var ErrNoExtraCfg = errors.New("no extra config")
+var ErrWrongExtraCfg = errors.New("wrong extra config")
+
+// ConfigGetter parses the extra config for the rate adapter and returns
+// a ZeroCfg and an error if something goes wrong.
+func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	v, ok := e[Namespace]
 	if !ok {
-		return ZeroCfg
+		return ZeroCfg, ErrNoExtraCfg
 	}
 	tmp, ok := v.(map[string]interface{})
 	if !ok {
-		return ZeroCfg
+		return ZeroCfg, ErrWrongExtraCfg
 	}
 	cfg := Config{}
 	if v, ok := tmp["maxRate"]; ok {
@@ -115,5 +128,5 @@ func ConfigGetter(e config.ExtraConfig) interface{} {
 			cfg.Capacity = int64(val)
 		}
 	}
-	return cfg
+	return cfg, nil
 }

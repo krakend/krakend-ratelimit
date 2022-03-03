@@ -10,7 +10,7 @@ import (
 
 var (
 	// ErrLimited is the error returned when the rate limit has been exceded
-	ErrLimited = errors.New("ERROR: rate limit exceded")
+	ErrLimited = errors.New("rate limit exceded")
 
 	// DataTTL is the default eviction time
 	DataTTL = 10 * time.Minute

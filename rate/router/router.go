@@ -24,7 +24,7 @@ package router
 import (
 	"fmt"
 
-	"github.com/luraproject/lura/config"
+	"github.com/luraproject/lura/v2/config"
 )
 
 // Namespace is the key to use to store and access the custom config data for the router

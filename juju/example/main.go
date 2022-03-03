@@ -5,15 +5,16 @@ import (
 	"log"
 	"os"
 
-	jujuproxy "github.com/devopsfaith/krakend-ratelimit/juju/proxy"
-	jujurouter "github.com/devopsfaith/krakend-ratelimit/juju/router/gin"
 	"github.com/gin-gonic/gin"
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/logging"
-	"github.com/luraproject/lura/proxy"
-	krakendgin "github.com/luraproject/lura/router/gin"
-	"github.com/luraproject/lura/transport/http/client"
-	http "github.com/luraproject/lura/transport/http/server"
+
+	jujuproxy "github.com/devopsfaith/krakend-ratelimit/v2/juju/proxy"
+	jujurouter "github.com/devopsfaith/krakend-ratelimit/v2/juju/router/gin"
+	"github.com/luraproject/lura/v2/config"
+	"github.com/luraproject/lura/v2/logging"
+	"github.com/luraproject/lura/v2/proxy"
+	krakendgin "github.com/luraproject/lura/v2/router/gin"
+	"github.com/luraproject/lura/v2/transport/http/client"
+	http "github.com/luraproject/lura/v2/transport/http/server"
 )
 
 func main() {
@@ -39,8 +40,14 @@ func main() {
 	}
 
 	routerFactory := krakendgin.NewFactory(krakendgin.Config{
-		Engine:         gin.Default(),
-		ProxyFactory:   proxy.NewDefaultFactory(jujuproxy.BackendFactory(proxy.CustomHTTPProxyFactory(client.NewHTTPClient)), logger),
+		Engine: gin.Default(),
+		ProxyFactory: proxy.NewDefaultFactory(
+			jujuproxy.BackendFactory(
+				logger,
+				proxy.CustomHTTPProxyFactory(client.NewHTTPClient),
+			),
+			logger,
+		),
 		Middlewares:    []gin.HandlerFunc{},
 		Logger:         logger,
 		HandlerFactory: jujurouter.HandlerFactory,
