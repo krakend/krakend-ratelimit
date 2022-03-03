@@ -42,8 +42,8 @@ import (
 	"github.com/luraproject/lura/v2/logging"
 	"github.com/luraproject/lura/v2/proxy"
 
-	"github.com/devopsfaith/krakend-ratelimit/juju"
 	krakendrate "github.com/devopsfaith/krakend-ratelimit/v2"
+	"github.com/devopsfaith/krakend-ratelimit/v2/juju"
 )
 
 // Namespace is the key to use to store and access the custom config data for the proxy
