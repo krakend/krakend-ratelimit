@@ -7,7 +7,7 @@ Sample backend extra config
 	"extra_config": {
 		...
 		"github.com/devopsfaith/krakend-ratelimit/rate/proxy": {
-			"maxRate": 100,
+			"max_rate": 100,
 			"capacity": 100
 		},
 		...
@@ -108,7 +108,7 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 		return ZeroCfg, ErrWrongExtraCfg
 	}
 	cfg := Config{}
-	if v, ok := tmp["maxRate"]; ok {
+	if v, ok := tmp["max_rate"]; ok {
 		switch val := v.(type) {
 		case float64:
 			cfg.MaxRate = val

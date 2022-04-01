@@ -49,7 +49,7 @@ func TestNewMiddleware_zeroConfig(t *testing.T) {
 func TestNewMiddleware_ok(t *testing.T) {
 	resp := proxy.Response{}
 	mdw := NewMiddleware(logging.NoOp, &config.Backend{
-		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"maxRate": 10000.0, "capacity": 10000.0}},
+		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 10000.0, "capacity": 10000.0}},
 	})
 	p := mdw(dummyProxy(&resp, nil))
 
@@ -73,7 +73,7 @@ func TestNewMiddleware_ko(t *testing.T) {
 	expected := proxy.Response{}
 	calls := uint64(0)
 	mdw := NewMiddleware(logging.NoOp, &config.Backend{
-		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"maxRate": 1.0, "capacity": 1.0}},
+		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 1.0, "capacity": 1.0}},
 	})
 	p := mdw(func(_ context.Context, _ *proxy.Request) (*proxy.Response, error) {
 		total := atomic.AddUint64(&calls, 1)

@@ -10,7 +10,7 @@ import (
 func TestConfigGetter(t *testing.T) {
 	serializedCfg := []byte(`{
 		"github.com/devopsfaith/krakend-ratelimit/juju/router": {
-			"maxRate":10
+			"max_rate":10
 		}
 	}`)
 	var dat config.ExtraConfig

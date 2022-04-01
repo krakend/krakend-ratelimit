@@ -7,9 +7,9 @@ Sample endpoint extra config
 	"extra_config": {
 		...
 		"github.com/devopsfaith/krakend-ratelimit/juju/router": {
-			"maxRate": 2000,
+			"max_rate": 2000,
 			"strategy": "header",
-			"clientMaxRate": 100,
+			"client_max_rate": 100,
 			"key": "X-Private-Token",
 		},
 		...
@@ -57,7 +57,7 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 		return ZeroCfg, ErrWrongExtraCfg
 	}
 	cfg := Config{}
-	if v, ok := tmp["maxRate"]; ok {
+	if v, ok := tmp["max_rate"]; ok {
 		switch val := v.(type) {
 		case int64:
 			cfg.MaxRate = val
@@ -70,7 +70,7 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	if v, ok := tmp["strategy"]; ok {
 		cfg.Strategy = fmt.Sprintf("%v", v)
 	}
-	if v, ok := tmp["clientMaxRate"]; ok {
+	if v, ok := tmp["client_max_rate"]; ok {
 		switch val := v.(type) {
 		case int64:
 			cfg.ClientMaxRate = val
