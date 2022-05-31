@@ -1,6 +1,6 @@
 # KrakenD rate limit
 
-A collection of rate limit adaptors for [KrakenD](https://github.com/devopsfaith/krakend-ce)
+A collection of rate limit adaptors for [KrakenD](https://github.com/krakendio/krakend-ce)
 
 ### rate
 
