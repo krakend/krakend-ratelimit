@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/devopsfaith/krakend-ratelimit/v2/juju/router"
 	"github.com/gin-gonic/gin"
+	"github.com/krakendio/krakend-ratelimit/v2/juju/router"
 	"github.com/luraproject/lura/v2/config"
 	"github.com/luraproject/lura/v2/proxy"
 )

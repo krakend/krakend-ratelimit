@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/time/rate"
 
-	krakendrate "github.com/devopsfaith/krakend-ratelimit/v2"
+	krakendrate "github.com/krakendio/krakend-ratelimit/v2"
 )
 
 // NewLimiter creates a new Limiter

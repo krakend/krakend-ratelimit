@@ -1,4 +1,4 @@
-module github.com/devopsfaith/krakend-ratelimit/v2
+module github.com/krakendio/krakend-ratelimit/v2
 
 go 1.17
 

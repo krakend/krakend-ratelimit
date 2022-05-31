@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	jujuproxy "github.com/devopsfaith/krakend-ratelimit/v2/juju/proxy"
-	jujurouter "github.com/devopsfaith/krakend-ratelimit/v2/juju/router/gin"
+	jujuproxy "github.com/krakendio/krakend-ratelimit/v2/juju/proxy"
+	jujurouter "github.com/krakendio/krakend-ratelimit/v2/juju/router/gin"
 	"github.com/luraproject/lura/v2/config"
 	"github.com/luraproject/lura/v2/logging"
 	"github.com/luraproject/lura/v2/proxy"
