@@ -112,5 +112,4 @@ func testRateLimiterMw(t *testing.T, rd requestDecorator, cfg *config.EndpointCo
 	if ok+ko != int64(total) {
 		t.Errorf("not all the requests were tracked: %d/%d", ok, ko)
 	}
-
 }
