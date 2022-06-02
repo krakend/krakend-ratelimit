@@ -42,8 +42,10 @@ type Config struct {
 // ZeroCfg is the zero value for the Config struct
 var ZeroCfg = Config{}
 
-var ErrNoExtraCfg = errors.New("no extra config")
-var ErrWrongExtraCfg = errors.New("wrong extra config")
+var (
+	ErrNoExtraCfg    = errors.New("no extra config")
+	ErrWrongExtraCfg = errors.New("wrong extra config")
+)
 
 // ConfigGetter parses the extra config for the rate adapter and
 // returns a ZeroCfg and an error if something goes wrong.
