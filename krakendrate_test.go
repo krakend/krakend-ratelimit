@@ -26,7 +26,7 @@ func TestMemoryBackend(t *testing.T) {
 	}
 }
 
-func testBackend(t *testing.T, storesInit int, f func(context.Context, time.Duration) Backend) {
+func testBackend(t *testing.T, _ int, f func(context.Context, time.Duration) Backend) {
 	ttl := time.Second
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
