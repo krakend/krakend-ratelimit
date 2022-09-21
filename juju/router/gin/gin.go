@@ -83,7 +83,7 @@ func NewHeaderLimiterMw(header string, maxRate float64, capacity int64) Endpoint
 	return NewTokenLimiterMw(HeaderTokenExtractor(header), juju.NewMemoryStore(maxRate, capacity))
 }
 
-// NewHeaderLimiterMw creates a token ratelimiter using the IP of the request as a token
+// NewIpLimiterMw creates a token ratelimiter using the IP of the request as a token
 func NewIpLimiterMw(maxRate float64, capacity int64) EndpointMw {
 	return NewTokenLimiterMw(IPTokenExtractor, juju.NewMemoryStore(maxRate, capacity))
 }
