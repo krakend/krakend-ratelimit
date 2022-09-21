@@ -40,14 +40,22 @@ func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) kra
 
 		if cfg.MaxRate > 0 {
 			if cfg.Capacity == 0 {
-				cfg.Capacity = int64(cfg.MaxRate) + 1
+				if cfg.MaxRate < 1 {
+					cfg.Capacity = 1
+				} else {
+					cfg.Capacity = int64(cfg.MaxRate)
+				}
 			}
 			logger.Debug(logPrefix, "Rate limit enabled")
 			handlerFunc = NewEndpointRateLimiterMw(juju.NewLimiter(cfg.MaxRate, cfg.Capacity))(handlerFunc)
 		}
 		if cfg.ClientMaxRate > 0 {
 			if cfg.ClientCapacity == 0 {
-				cfg.ClientCapacity = int64(cfg.ClientMaxRate) + 1
+				if cfg.MaxRate < 1 {
+					cfg.ClientCapacity = 1
+				} else {
+					cfg.ClientCapacity = int64(cfg.ClientMaxRate)
+				}
 			}
 			switch strings.ToLower(cfg.Strategy) {
 			case "ip":
