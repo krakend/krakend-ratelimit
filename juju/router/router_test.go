@@ -10,7 +10,8 @@ import (
 func TestConfigGetter(t *testing.T) {
 	serializedCfg := []byte(`{
 		"github.com/devopsfaith/krakend-ratelimit/juju/router": {
-			"max_rate":10
+			"max_rate":10,
+			"capacity":10
 		}
 	}`)
 	var dat config.ExtraConfig
@@ -19,10 +20,16 @@ func TestConfigGetter(t *testing.T) {
 	}
 	cfg, err := ConfigGetter(dat)
 	if cfg.MaxRate != 10 {
-		t.Errorf("wrong value for MaxRate. Want: 10, have: %d", cfg.MaxRate)
+		t.Errorf("wrong value for MaxRate. Want: 10, have: %f", cfg.MaxRate)
 	}
 	if cfg.ClientMaxRate != 0 {
-		t.Errorf("wrong value for ClientMaxRate. Want: 0, have: %d", cfg.ClientMaxRate)
+		t.Errorf("wrong value for ClientMaxRate. Want: 0, have: %f", cfg.ClientMaxRate)
+	}
+	if cfg.Capacity != 10 {
+		t.Errorf("wrong value for Capacity. Want: 10, have: %d", cfg.Capacity)
+	}
+	if cfg.ClientCapacity != 0 {
+		t.Errorf("wrong value for ClientCapacity. Want: 0, have: %d", cfg.ClientCapacity)
 	}
 	if cfg.Strategy != "" {
 		t.Errorf("wrong value for Strategy. Want: '', have: %s", cfg.Strategy)

@@ -20,9 +20,10 @@ func TestNewRateLimiterMw_CustomHeaderIP(t *testing.T) {
 	cfg := &config.EndpointConfig{
 		ExtraConfig: map[string]interface{}{
 			router.Namespace: map[string]interface{}{
-				"strategy":      "ip",
-				"clientMaxRate": 100,
-				"key":           header,
+				"strategy":        "ip",
+				"client_max_rate": 100,
+				"client_capacity": 100,
+				"key":             header,
 			},
 		},
 	}
@@ -40,9 +41,10 @@ func TestNewRateLimiterMw_CustomHeader(t *testing.T) {
 	cfg := &config.EndpointConfig{
 		ExtraConfig: map[string]interface{}{
 			router.Namespace: map[string]interface{}{
-				"strategy":      "header",
-				"clientMaxRate": 100,
-				"key":           header,
+				"strategy":        "header",
+				"client_max_rate": 100,
+				"client_capacity": 100,
+				"key":             header,
 			},
 		},
 	}
@@ -58,8 +60,9 @@ func TestNewRateLimiterMw_DefaultIP(t *testing.T) {
 	cfg := &config.EndpointConfig{
 		ExtraConfig: map[string]interface{}{
 			router.Namespace: map[string]interface{}{
-				"strategy":      "ip",
-				"clientMaxRate": 100,
+				"strategy":        "ip",
+				"client_max_rate": 100,
+				"client_capacity": 100,
 			},
 		},
 	}
@@ -86,7 +89,7 @@ func testRateLimiterMw(t *testing.T, rd requestDecorator, cfg *config.EndpointCo
 	total := 10000
 	start := time.Now()
 	for i := 0; i < total; i++ {
-		req, _ := http.NewRequest("GET", "/", nil)
+		req, _ := http.NewRequest("GET", "/", http.NoBody)
 		rd(req)
 		w := httptest.NewRecorder()
 
