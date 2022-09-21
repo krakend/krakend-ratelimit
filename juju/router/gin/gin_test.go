@@ -89,7 +89,7 @@ func testRateLimiterMw(t *testing.T, rd requestDecorator, cfg *config.EndpointCo
 	total := 10000
 	start := time.Now()
 	for i := 0; i < total; i++ {
-		req, _ := http.NewRequest("GET", "/", nil)
+		req, _ := http.NewRequest("GET", "/", http.NoBody)
 		rd(req)
 		w := httptest.NewRecorder()
 
