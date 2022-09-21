@@ -39,17 +39,23 @@ func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) kra
 		}
 
 		if cfg.MaxRate > 0 {
+			if cfg.Capacity == 0 {
+				cfg.Capacity = int64(cfg.MaxRate) + 1
+			}
 			logger.Debug(logPrefix, "Rate limit enabled")
-			handlerFunc = NewEndpointRateLimiterMw(juju.NewLimiter(float64(cfg.MaxRate), cfg.MaxRate))(handlerFunc)
+			handlerFunc = NewEndpointRateLimiterMw(juju.NewLimiter(cfg.MaxRate, cfg.Capacity))(handlerFunc)
 		}
 		if cfg.ClientMaxRate > 0 {
+			if cfg.ClientCapacity == 0 {
+				cfg.ClientCapacity = int64(cfg.ClientMaxRate) + 1
+			}
 			switch strings.ToLower(cfg.Strategy) {
 			case "ip":
 				logger.Debug(logPrefix, "IP-based rate limit enabled")
-				handlerFunc = NewIpLimiterWithKeyMw(cfg.Key, float64(cfg.ClientMaxRate), cfg.ClientMaxRate)(handlerFunc)
+				handlerFunc = NewIpLimiterWithKeyMw(cfg.Key, cfg.ClientMaxRate, cfg.ClientCapacity)(handlerFunc)
 			case "header":
 				logger.Debug(logPrefix, "Header-based rate limit enabled")
-				handlerFunc = NewHeaderLimiterMw(cfg.Key, float64(cfg.ClientMaxRate), cfg.ClientMaxRate)(handlerFunc)
+				handlerFunc = NewHeaderLimiterMw(cfg.Key, cfg.ClientMaxRate, cfg.ClientCapacity)(handlerFunc)
 			}
 		}
 		return handlerFunc

@@ -33,10 +33,12 @@ const Namespace = "github.com/devopsfaith/krakend-ratelimit/juju/router"
 
 // Config is the custom config struct containing the params for the router middlewares
 type Config struct {
-	MaxRate       int64
-	Strategy      string
-	ClientMaxRate int64
-	Key           string
+	MaxRate        float64
+	Capacity       int64
+	Strategy       string
+	ClientMaxRate  float64
+	ClientCapacity int64
+	Key            string
 }
 
 // ZeroCfg is the zero value for the Config struct
@@ -62,11 +64,21 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	if v, ok := tmp["max_rate"]; ok {
 		switch val := v.(type) {
 		case int64:
-			cfg.MaxRate = val
+			cfg.MaxRate = float64(val)
 		case int:
-			cfg.MaxRate = int64(val)
+			cfg.MaxRate = float64(val)
 		case float64:
-			cfg.MaxRate = int64(val)
+			cfg.MaxRate = val
+		}
+	}
+	if v, ok := tmp["capacity"]; ok {
+		switch val := v.(type) {
+		case int64:
+			cfg.Capacity = val
+		case int:
+			cfg.Capacity = int64(val)
+		case float64:
+			cfg.Capacity = int64(val)
 		}
 	}
 	if v, ok := tmp["strategy"]; ok {
@@ -75,11 +87,21 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	if v, ok := tmp["client_max_rate"]; ok {
 		switch val := v.(type) {
 		case int64:
-			cfg.ClientMaxRate = val
+			cfg.ClientMaxRate = float64(val)
 		case int:
-			cfg.ClientMaxRate = int64(val)
+			cfg.ClientMaxRate = float64(val)
 		case float64:
-			cfg.ClientMaxRate = int64(val)
+			cfg.ClientMaxRate = val
+		}
+	}
+	if v, ok := tmp["client_capacity"]; ok {
+		switch val := v.(type) {
+		case int64:
+			cfg.ClientCapacity = val
+		case int:
+			cfg.ClientCapacity = int64(val)
+		case float64:
+			cfg.ClientCapacity = int64(val)
 		}
 	}
 	if v, ok := tmp["key"]; ok {
