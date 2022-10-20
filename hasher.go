@@ -2,7 +2,7 @@ package krakendrate
 
 const (
 	offset64 uint64 = 14695981039346656037
-	prime64         = 1099511628211
+	prime64  uint64 = 1099511628211
 )
 
 func PseudoFNV64a(s string) uint64 {
