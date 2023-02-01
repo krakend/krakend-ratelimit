@@ -51,7 +51,7 @@ func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) kra
 		}
 		if cfg.ClientMaxRate > 0 {
 			if cfg.ClientCapacity == 0 {
-				if cfg.MaxRate < 1 {
+				if cfg.ClientMaxRate < 1 {
 					cfg.ClientCapacity = 1
 				} else {
 					cfg.ClientCapacity = int64(cfg.ClientMaxRate)
