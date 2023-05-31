@@ -75,6 +75,15 @@ func NewMiddleware(logger logging.Logger, remote *config.Backend) proxy.Middlewa
 	if cfg.MaxRate <= 0 {
 		return proxy.EmptyMiddleware
 	}
+
+	if cfg.Capacity == 0 {
+		if cfg.MaxRate < 1 {
+			cfg.Capacity = 1
+		} else {
+			cfg.Capacity = int64(cfg.MaxRate)
+		}
+	}
+
 	tb := juju.NewLimiter(cfg.MaxRate, cfg.Capacity)
 	logger.Debug(logPrefix, "Enabling the rate limiter")
 	return func(next ...proxy.Proxy) proxy.Proxy {

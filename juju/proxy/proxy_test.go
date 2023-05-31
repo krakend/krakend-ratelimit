@@ -49,7 +49,30 @@ func TestNewMiddleware_zeroConfig(t *testing.T) {
 func TestNewMiddleware_ok(t *testing.T) {
 	resp := proxy.Response{}
 	mdw := NewMiddleware(logging.NoOp, &config.Backend{
-		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 10000.0, "capacity": 10000.0}},
+		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 10000.0, "capacity": 10000}},
+	})
+	p := mdw(dummyProxy(&resp, nil))
+
+	request := proxy.Request{
+		Path: "/tupu",
+	}
+
+	for i := 0; i < 1000; i++ {
+		r, err := p(context.Background(), &request)
+		if err != nil {
+			t.Error(err.Error())
+			return
+		}
+		if &resp != r {
+			t.Fail()
+		}
+	}
+}
+
+func TestNewMiddleware_capacity(t *testing.T) {
+	resp := proxy.Response{}
+	mdw := NewMiddleware(logging.NoOp, &config.Backend{
+		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 10000.0}},
 	})
 	p := mdw(dummyProxy(&resp, nil))
 
