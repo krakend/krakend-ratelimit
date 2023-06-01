@@ -5,8 +5,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	krakendrate "github.com/krakendio/krakend-ratelimit/v2"
+	krakendrate "github.com/krakendio/krakend-ratelimit/v3"
 	"github.com/luraproject/lura/v2/config"
+	"github.com/luraproject/lura/v2/logging"
 	"github.com/luraproject/lura/v2/proxy"
 )
 
@@ -16,7 +17,7 @@ func TestNewMiddleware_multipleNext(t *testing.T) {
 			t.Errorf("The code did not panic\n")
 		}
 	}()
-	NewMiddleware(&config.Backend{})(proxy.NoopProxy, proxy.NoopProxy)
+	NewMiddleware(logging.NoOp, &config.Backend{})(proxy.NoopProxy, proxy.NoopProxy)
 }
 
 func TestNewMiddleware_zeroConfig(t *testing.T) {
@@ -25,7 +26,7 @@ func TestNewMiddleware_zeroConfig(t *testing.T) {
 		{ExtraConfig: map[string]interface{}{Namespace: 42}},
 	} {
 		resp := proxy.Response{}
-		mdw := NewMiddleware(cfg)
+		mdw := NewMiddleware(logging.NoOp, cfg)
 		p := mdw(dummyProxy(&resp, nil))
 
 		request := proxy.Request{
@@ -47,8 +48,31 @@ func TestNewMiddleware_zeroConfig(t *testing.T) {
 
 func TestNewMiddleware_ok(t *testing.T) {
 	resp := proxy.Response{}
-	mdw := NewMiddleware(&config.Backend{
-		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"maxRate": 10000.0, "capacity": 10000.0}},
+	mdw := NewMiddleware(logging.NoOp, &config.Backend{
+		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 10000.0, "capacity": 10000}},
+	})
+	p := mdw(dummyProxy(&resp, nil))
+
+	request := proxy.Request{
+		Path: "/tupu",
+	}
+
+	for i := 0; i < 1000; i++ {
+		r, err := p(context.Background(), &request)
+		if err != nil {
+			t.Error(err.Error())
+			return
+		}
+		if &resp != r {
+			t.Fail()
+		}
+	}
+}
+
+func TestNewMiddleware_capacity(t *testing.T) {
+	resp := proxy.Response{}
+	mdw := NewMiddleware(logging.NoOp, &config.Backend{
+		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 10000.0}},
 	})
 	p := mdw(dummyProxy(&resp, nil))
 
@@ -71,8 +95,8 @@ func TestNewMiddleware_ok(t *testing.T) {
 func TestNewMiddleware_ko(t *testing.T) {
 	expected := proxy.Response{}
 	calls := uint64(0)
-	mdw := NewMiddleware(&config.Backend{
-		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"maxRate": 1.0, "capacity": 1.0}},
+	mdw := NewMiddleware(logging.NoOp, &config.Backend{
+		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 1.0, "capacity": 1.0}},
 	})
 	p := mdw(func(_ context.Context, _ *proxy.Request) (*proxy.Response, error) {
 		total := atomic.AddUint64(&calls, 1)

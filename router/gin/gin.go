@@ -11,9 +11,8 @@ import (
 	"github.com/luraproject/lura/v2/proxy"
 	krakendgin "github.com/luraproject/lura/v2/router/gin"
 
-	krakendrate "github.com/krakendio/krakend-ratelimit/v2"
-	"github.com/krakendio/krakend-ratelimit/v2/juju"
-	"github.com/krakendio/krakend-ratelimit/v2/juju/router"
+	krakendrate "github.com/krakendio/krakend-ratelimit/v3"
+	"github.com/krakendio/krakend-ratelimit/v3/router"
 )
 
 // HandlerFactory is the out-of-the-box basic ratelimit handler factory using the default krakend endpoint
@@ -43,18 +42,18 @@ func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) kra
 				if cfg.MaxRate < 1 {
 					cfg.Capacity = 1
 				} else {
-					cfg.Capacity = int64(cfg.MaxRate)
+					cfg.Capacity = uint64(cfg.MaxRate)
 				}
 			}
 			logger.Debug(logPrefix, "Rate limit enabled")
-			handlerFunc = NewEndpointRateLimiterMw(juju.NewLimiter(cfg.MaxRate, cfg.Capacity))(handlerFunc)
+			handlerFunc = NewEndpointRateLimiterMw(krakendrate.NewTokenBucket(cfg.MaxRate, cfg.Capacity))(handlerFunc)
 		}
 		if cfg.ClientMaxRate > 0 {
 			if cfg.ClientCapacity == 0 {
 				if cfg.ClientMaxRate < 1 {
 					cfg.ClientCapacity = 1
 				} else {
-					cfg.ClientCapacity = int64(cfg.ClientMaxRate)
+					cfg.ClientCapacity = uint64(cfg.ClientMaxRate)
 				}
 			}
 			switch strategy := strings.ToLower(cfg.Strategy); strategy {
@@ -76,7 +75,7 @@ func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) kra
 type EndpointMw func(gin.HandlerFunc) gin.HandlerFunc
 
 // NewEndpointRateLimiterMw creates a simple ratelimiter for a given handlerFunc
-func NewEndpointRateLimiterMw(tb juju.Limiter) EndpointMw {
+func NewEndpointRateLimiterMw(tb *krakendrate.TokenBucket) EndpointMw {
 	return func(next gin.HandlerFunc) gin.HandlerFunc {
 		return func(c *gin.Context) {
 			if !tb.Allow() {
@@ -89,21 +88,21 @@ func NewEndpointRateLimiterMw(tb juju.Limiter) EndpointMw {
 }
 
 // NewHeaderLimiterMw creates a token ratelimiter using the value of a header as a token
-func NewHeaderLimiterMw(header string, maxRate float64, capacity int64) EndpointMw {
-	return NewTokenLimiterMw(HeaderTokenExtractor(header), juju.NewMemoryStore(maxRate, capacity))
+func NewHeaderLimiterMw(header string, maxRate float64, capacity uint64) EndpointMw {
+	return NewTokenLimiterMw(HeaderTokenExtractor(header), krakendrate.NewMemoryStore(maxRate, int(capacity)))
 }
 
 // NewIpLimiterMw creates a token ratelimiter using the IP of the request as a token
-func NewIpLimiterMw(maxRate float64, capacity int64) EndpointMw {
-	return NewTokenLimiterMw(IPTokenExtractor, juju.NewMemoryStore(maxRate, capacity))
+func NewIpLimiterMw(maxRate float64, capacity uint64) EndpointMw {
+	return NewTokenLimiterMw(IPTokenExtractor, krakendrate.NewMemoryStore(maxRate, int(capacity)))
 }
 
 // NewIpLimiterWithKeyMw creates a token ratelimiter using the IP of the request as a token
-func NewIpLimiterWithKeyMw(header string, maxRate float64, capacity int64) EndpointMw {
+func NewIpLimiterWithKeyMw(header string, maxRate float64, capacity uint64) EndpointMw {
 	if header == "" {
 		return NewIpLimiterMw(maxRate, capacity)
 	}
-	return NewTokenLimiterMw(NewIPTokenExtractor(header), juju.NewMemoryStore(maxRate, capacity))
+	return NewTokenLimiterMw(NewIPTokenExtractor(header), krakendrate.NewMemoryStore(maxRate, int(capacity)))
 }
 
 // TokenExtractor defines the interface of the functions to use in order to extract a token for each request
