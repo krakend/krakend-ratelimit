@@ -21,8 +21,8 @@ func NewLimiterStore(maxRate float64, capacity int, backend Backend) LimiterStor
 
 // NewTokenBucket returns a token bucket with the given rate and capacity, using the default clock and
 // an initial stock of cap
-func NewTokenBucket(rate float64, cap uint64) *TokenBucket {
-	return NewTokenBucketWithClock(rate, cap, nil)
+func NewTokenBucket(rate float64, capacity uint64) *TokenBucket {
+	return NewTokenBucketWithClock(rate, capacity, nil)
 }
 
 // Clock defines the interface for clock sources
@@ -32,22 +32,22 @@ type Clock interface {
 }
 
 // NewTokenBucketWithClock returns a token bucket with the given rate, capacity, and clock and
-// an initial stock of cap
-func NewTokenBucketWithClock(rate float64, cap uint64, c Clock) *TokenBucket {
-	return NewTokenBucketWithInitialStock(rate, cap, cap, c)
+// an initial stock of capacity
+func NewTokenBucketWithClock(rate float64, capacity uint64, c Clock) *TokenBucket {
+	return NewTokenBucketWithInitialStock(rate, capacity, capacity, c)
 }
 
 // NewTokenBucketWithInitialStock returns a token bucket with the given rate, capacity, clock
 // and initial stock
-func NewTokenBucketWithInitialStock(r float64, cap, i uint64, c Clock) *TokenBucket {
+func NewTokenBucketWithInitialStock(r float64, capacity, i uint64, c Clock) *TokenBucket {
 	if c == nil {
 		c = defaultClock{}
 	}
-	if cap < 1 {
-		cap = 1
+	if capacity < 1 {
+		capacity = 1
 	}
-	if i > cap {
-		i = cap
+	if i > capacity {
+		i = capacity
 	}
 	if r < 1e-9 {
 		r = 1e-9
@@ -55,7 +55,7 @@ func NewTokenBucketWithInitialStock(r float64, cap, i uint64, c Clock) *TokenBuc
 
 	return &TokenBucket{
 		fillInterval: time.Duration(int64(1e9 / r)),
-		capacity:     cap,
+		capacity:     capacity,
 		clock:        c,
 		tokens:       i,
 		lastRefill:   c.Now(),
