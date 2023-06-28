@@ -1,5 +1,5 @@
 /*
-Package proxy provides a rate-limit proxy middleware using the github.com/juju/ratelimit lib.
+Package proxy provides a rate-limit proxy middleware.
 
 Sample backend extra config
 
@@ -29,30 +29,30 @@ Adding the middleware to your proxy stack
 
 	...
 
-The ratelimit package provides an efficient token bucket implementation. See https://github.com/juju/ratelimit
-and http://en.wikipedia.org/wiki/Token_bucket for more details.
+The ratelimit package provides an efficient token bucket implementation. See http://en.wikipedia.org/wiki/Token_bucket for more details.
 */
 package proxy
 
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/luraproject/lura/v2/config"
 	"github.com/luraproject/lura/v2/logging"
 	"github.com/luraproject/lura/v2/proxy"
 
-	krakendrate "github.com/krakendio/krakend-ratelimit/v2"
-	"github.com/krakendio/krakend-ratelimit/v2/juju"
+	krakendrate "github.com/krakendio/krakend-ratelimit/v3"
 )
 
 // Namespace is the key to use to store and access the custom config data for the proxy
-const Namespace = "github.com/devopsfaith/krakend-ratelimit/juju/proxy"
+const Namespace = "qos/ratelimit/proxy"
 
 // Config is the custom config struct containing the params for the limiter
 type Config struct {
 	MaxRate  float64
-	Capacity int64
+	Capacity uint64
 }
 
 // BackendFactory adds a ratelimiting middleware wrapping the internal factory
@@ -80,11 +80,11 @@ func NewMiddleware(logger logging.Logger, remote *config.Backend) proxy.Middlewa
 		if cfg.MaxRate < 1 {
 			cfg.Capacity = 1
 		} else {
-			cfg.Capacity = int64(cfg.MaxRate)
+			cfg.Capacity = uint64(cfg.MaxRate)
 		}
 	}
 
-	tb := juju.NewLimiter(cfg.MaxRate, cfg.Capacity)
+	tb := krakendrate.NewTokenBucket(cfg.MaxRate, cfg.Capacity)
 	logger.Debug(logPrefix, "Enabling the rate limiter")
 	return func(next ...proxy.Proxy) proxy.Proxy {
 		if len(next) > 1 {
@@ -132,12 +132,23 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	if v, ok := tmp["capacity"]; ok {
 		switch val := v.(type) {
 		case int64:
-			cfg.Capacity = val
+			cfg.Capacity = uint64(val)
 		case int:
-			cfg.Capacity = int64(val)
+			cfg.Capacity = uint64(val)
 		case float64:
-			cfg.Capacity = int64(val)
+			cfg.Capacity = uint64(val)
 		}
 	}
+
+	factor := 1.0
+	if v, ok := tmp["every"]; ok {
+		every, err := time.ParseDuration(fmt.Sprintf("%v", v))
+		if err != nil {
+			every = time.Second
+		}
+		factor = float64(time.Second) / float64(every)
+	}
+	cfg.MaxRate = cfg.MaxRate * factor
+
 	return cfg, nil
 }

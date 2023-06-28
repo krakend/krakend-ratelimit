@@ -1,4 +1,4 @@
-package juju
+package krakendrate
 
 import "testing"
 

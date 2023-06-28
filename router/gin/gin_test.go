@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/krakendio/krakend-ratelimit/v2/juju/router"
+	"github.com/krakendio/krakend-ratelimit/v3/router"
 	"github.com/luraproject/lura/v2/config"
 	"github.com/luraproject/lura/v2/proxy"
 )

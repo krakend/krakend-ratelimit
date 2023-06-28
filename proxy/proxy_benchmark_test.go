@@ -26,7 +26,7 @@ func BenchmarkNewMiddleware_ok(b *testing.B) {
 	}
 }
 
-func BenchmarkNewCMiddleware_ko(b *testing.B) {
+func BenchmarkNewMiddleware_ko(b *testing.B) {
 	p := NewMiddleware(logging.NoOp, &config.Backend{
 		ExtraConfig: map[string]interface{}{
 			Namespace: map[string]interface{}{

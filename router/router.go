@@ -1,43 +1,28 @@
 /*
-Package router provides several rate-limit routers using the github.com/juju/ratelimit lib.
+Package router provides several rate-limit routers.
 
-Sample endpoint extra config
-
-	...
-	"extra_config": {
-		...
-		"github.com/devopsfaith/krakend-ratelimit/juju/router": {
-			"max_rate": 2000,
-			"strategy": "header",
-			"client_max_rate": 100,
-			"key": "X-Private-Token",
-		},
-		...
-	},
-	...
-
-The ratelimit package provides an efficient token bucket implementation. See https://github.com/juju/ratelimit
-and http://en.wikipedia.org/wiki/Token_bucket for more details.
+The ratelimit package provides an efficient token bucket implementation. See http://en.wikipedia.org/wiki/Token_bucket for more details.
 */
 package router
 
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/luraproject/lura/v2/config"
 )
 
 // Namespace is the key to use to store and access the custom config data for the router
-const Namespace = "github.com/devopsfaith/krakend-ratelimit/juju/router"
+const Namespace = "qos/ratelimit/router"
 
 // Config is the custom config struct containing the params for the router middlewares
 type Config struct {
 	MaxRate        float64
-	Capacity       int64
+	Capacity       uint64
 	Strategy       string
 	ClientMaxRate  float64
-	ClientCapacity int64
+	ClientCapacity uint64
 	Key            string
 }
 
@@ -74,11 +59,11 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	if v, ok := tmp["capacity"]; ok {
 		switch val := v.(type) {
 		case int64:
-			cfg.Capacity = val
+			cfg.Capacity = uint64(val)
 		case int:
-			cfg.Capacity = int64(val)
+			cfg.Capacity = uint64(val)
 		case float64:
-			cfg.Capacity = int64(val)
+			cfg.Capacity = uint64(val)
 		}
 	}
 	if v, ok := tmp["strategy"]; ok {
@@ -97,15 +82,27 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	if v, ok := tmp["client_capacity"]; ok {
 		switch val := v.(type) {
 		case int64:
-			cfg.ClientCapacity = val
+			cfg.ClientCapacity = uint64(val)
 		case int:
-			cfg.ClientCapacity = int64(val)
+			cfg.ClientCapacity = uint64(val)
 		case float64:
-			cfg.ClientCapacity = int64(val)
+			cfg.ClientCapacity = uint64(val)
 		}
 	}
 	if v, ok := tmp["key"]; ok {
 		cfg.Key = fmt.Sprintf("%v", v)
 	}
+
+	factor := 1.0
+	if v, ok := tmp["every"]; ok {
+		every, err := time.ParseDuration(fmt.Sprintf("%v", v))
+		if err != nil {
+			every = time.Second
+		}
+		factor = float64(time.Second) / float64(every)
+	}
+	cfg.MaxRate = cfg.MaxRate * factor
+	cfg.ClientMaxRate = cfg.ClientMaxRate * factor
+
 	return cfg, nil
 }
