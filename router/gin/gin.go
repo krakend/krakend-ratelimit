@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -45,9 +46,10 @@ func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) kra
 					cfg.Capacity = uint64(cfg.MaxRate)
 				}
 			}
-			logger.Debug(logPrefix, "Rate limit enabled")
+			logger.Debug(logPrefix, fmt.Sprintf("Rate limit enabled. MaxRate: %f, Capacity: %d", cfg.MaxRate, cfg.Capacity))
 			handlerFunc = NewEndpointRateLimiterMw(krakendrate.NewTokenBucket(cfg.MaxRate, cfg.Capacity))(handlerFunc)
 		}
+
 		if cfg.ClientMaxRate > 0 {
 			if cfg.ClientCapacity == 0 {
 				if cfg.ClientMaxRate < 1 {
@@ -58,15 +60,16 @@ func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) kra
 			}
 			switch strategy := strings.ToLower(cfg.Strategy); strategy {
 			case "ip":
-				logger.Debug(logPrefix, "IP-based rate limit enabled")
+				logger.Debug(logPrefix, fmt.Sprintf("IP-based rate limit enabled. MaxRate: %f, Capacity: %d", cfg.ClientMaxRate, cfg.ClientCapacity))
 				handlerFunc = NewIpLimiterWithKeyMw(cfg.Key, cfg.ClientMaxRate, cfg.ClientCapacity)(handlerFunc)
 			case "header":
-				logger.Debug(logPrefix, "Header-based rate limit enabled")
+				logger.Debug(logPrefix, fmt.Sprintf("Header-based rate limit enabled. MaxRate: %f, Capacity: %d", cfg.ClientMaxRate, cfg.ClientCapacity))
 				handlerFunc = NewHeaderLimiterMw(cfg.Key, cfg.ClientMaxRate, cfg.ClientCapacity)(handlerFunc)
 			default:
 				logger.Warning(logPrefix, "Unknown strategy", strategy)
 			}
 		}
+
 		return handlerFunc
 	}
 }

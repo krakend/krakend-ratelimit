@@ -72,7 +72,7 @@ func TestNewMiddleware_ok(t *testing.T) {
 func TestNewMiddleware_capacity(t *testing.T) {
 	resp := proxy.Response{}
 	mdw := NewMiddleware(logging.NoOp, &config.Backend{
-		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 10000.0}},
+		ExtraConfig: map[string]interface{}{Namespace: map[string]interface{}{"max_rate": 100000.0, "every": "10s"}},
 	})
 	p := mdw(dummyProxy(&resp, nil))
 
@@ -80,7 +80,7 @@ func TestNewMiddleware_capacity(t *testing.T) {
 		Path: "/tupu",
 	}
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10000; i++ {
 		r, err := p(context.Background(), &request)
 		if err != nil {
 			t.Error(err.Error())

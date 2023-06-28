@@ -36,6 +36,8 @@ package proxy
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/luraproject/lura/v2/config"
 	"github.com/luraproject/lura/v2/logging"
@@ -137,5 +139,16 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 			cfg.Capacity = uint64(val)
 		}
 	}
+
+	factor := 1.0
+	if v, ok := tmp["every"]; ok {
+		every, err := time.ParseDuration(fmt.Sprintf("%v", v))
+		if err != nil {
+			every = time.Second
+		}
+		factor = float64(time.Second) / float64(every)
+	}
+	cfg.MaxRate = cfg.MaxRate * factor
+
 	return cfg, nil
 }

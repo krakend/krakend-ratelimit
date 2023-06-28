@@ -8,6 +8,7 @@ package router
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/luraproject/lura/v2/config"
 )
@@ -91,5 +92,17 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	if v, ok := tmp["key"]; ok {
 		cfg.Key = fmt.Sprintf("%v", v)
 	}
+
+	factor := 1.0
+	if v, ok := tmp["every"]; ok {
+		every, err := time.ParseDuration(fmt.Sprintf("%v", v))
+		if err != nil {
+			every = time.Second
+		}
+		factor = float64(time.Second) / float64(every)
+	}
+	cfg.MaxRate = cfg.MaxRate * factor
+	cfg.ClientMaxRate = cfg.ClientMaxRate * factor
+
 	return cfg, nil
 }
