@@ -3,7 +3,7 @@ module github.com/krakendio/krakend-ratelimit/v3
 go 1.20
 
 require (
-	github.com/gin-gonic/gin v1.9.0
+	github.com/gin-gonic/gin v1.9.1
 	github.com/luraproject/lura/v2 v2.2.8
 )
 
