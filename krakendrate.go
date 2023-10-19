@@ -118,7 +118,7 @@ type MemoryBackend struct {
 func (m *MemoryBackend) manageEvictions(ctx context.Context, ttl time.Duration) {
 	t := time.NewTicker(ttl)
 	for {
-		keysToDel := []string{}
+		var keysToDel []string
 
 		select {
 		case <-ctx.Done():

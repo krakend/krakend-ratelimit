@@ -91,8 +91,9 @@ func NewEndpointRateLimiterMw(tb *krakendrate.TokenBucket) EndpointMw {
 	}
 }
 
-// Deprecated: Use NewHeaderLimiterMwFromCfg instead
 // NewHeaderLimiterMw creates a token ratelimiter using the value of a header as a token
+//
+// Deprecated: Use NewHeaderLimiterMwFromCfg instead
 func NewHeaderLimiterMw(header string, maxRate float64, capacity uint64) EndpointMw {
 	return NewTokenLimiterMw(HeaderTokenExtractor(header), krakendrate.NewMemoryStore(maxRate, int(capacity)))
 }
@@ -117,8 +118,9 @@ func NewIpLimiterMw(maxRate float64, capacity uint64) EndpointMw {
 	return NewTokenLimiterMw(IPTokenExtractor, krakendrate.NewMemoryStore(maxRate, int(capacity)))
 }
 
-// Deprecated: Use NewIpLimiterWithKeyMwFromCfg instead
 // NewIpLimiterWithKeyMw creates a token ratelimiter using the IP of the request as a token
+//
+// Deprecated: Use NewIpLimiterWithKeyMwFromCfg instead
 func NewIpLimiterWithKeyMw(header string, maxRate float64, capacity uint64) EndpointMw {
 	if header == "" {
 		return NewIpLimiterMw(maxRate, capacity)
