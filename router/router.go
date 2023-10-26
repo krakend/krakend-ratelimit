@@ -8,8 +8,10 @@ package router
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"time"
 
+	krakendrate "github.com/krakendio/krakend-ratelimit/v3"
 	"github.com/luraproject/lura/v2/config"
 )
 
@@ -24,6 +26,7 @@ type Config struct {
 	ClientMaxRate  float64
 	ClientCapacity uint64
 	Key            string
+	TTL            time.Duration
 }
 
 // ZeroCfg is the zero value for the Config struct
@@ -93,16 +96,20 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 		cfg.Key = fmt.Sprintf("%v", v)
 	}
 
-	factor := 1.0
+	cfg.TTL = krakendrate.DataTTL
 	if v, ok := tmp["every"]; ok {
 		every, err := time.ParseDuration(fmt.Sprintf("%v", v))
 		if err != nil {
 			every = time.Second
 		}
-		factor = float64(time.Second) / float64(every)
+		factor := float64(time.Second) / float64(every)
+		cfg.MaxRate = cfg.MaxRate * factor
+		cfg.ClientMaxRate = cfg.ClientMaxRate * factor
+
+		if every > cfg.TTL {
+			cfg.TTL = time.Duration(int64((1 + 0.25*rand.Float64()) * float64(every)))
+		}
 	}
-	cfg.MaxRate = cfg.MaxRate * factor
-	cfg.ClientMaxRate = cfg.ClientMaxRate * factor
 
 	return cfg, nil
 }
