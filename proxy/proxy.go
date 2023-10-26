@@ -16,7 +16,7 @@ Sample backend extra config
 
 Adding the middleware to your proxy stack
 
-	import juju "github.com/krakendio/krakend-ratelimit/juju/proxy"
+	import ratelimitproxy "github.com/krakendio/krakend-ratelimit/v3/proxy"
 
 	...
 
@@ -25,7 +25,7 @@ Adding the middleware to your proxy stack
 
 	...
 
-	p = juju.NewMiddleware(backend)(p)
+	p = ratelimitproxy.NewMiddleware(backend)(p)
 
 	...
 
