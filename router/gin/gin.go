@@ -1,9 +1,7 @@
 package gin
 
 import (
-	"context"
 	"fmt"
-	"net"
 	"net/http"
 	"strings"
 
@@ -100,17 +98,9 @@ func NewHeaderLimiterMw(header string, maxRate float64, capacity uint64) Endpoin
 
 // NewHeaderLimiterMwFromCfg creates a token ratelimiter using the value of a header as a token
 func NewHeaderLimiterMwFromCfg(cfg router.Config) EndpointMw {
-	store := krakendrate.NewLimiterStore(
-		cfg.ClientMaxRate,
-		int(cfg.ClientCapacity),
-		krakendrate.NewShardedMemoryBackend(
-			context.Background(),
-			krakendrate.DefaultShards,
-			cfg.TTL,
-			krakendrate.PseudoFNV64a,
-		),
-	)
-	return NewTokenLimiterMw(HeaderTokenExtractor(cfg.Key), store)
+	store := StoreFromCfg(cfg)
+	tokenExtractor := HeaderTokenExtractor(cfg.Key)
+	return NewTokenLimiterMw(tokenExtractor, store)
 }
 
 // NewIpLimiterMw creates a token ratelimiter using the IP of the request as a token
@@ -122,53 +112,15 @@ func NewIpLimiterMw(maxRate float64, capacity uint64) EndpointMw {
 //
 // Deprecated: Use NewIpLimiterWithKeyMwFromCfg instead
 func NewIpLimiterWithKeyMw(header string, maxRate float64, capacity uint64) EndpointMw {
-	if header == "" {
-		return NewIpLimiterMw(maxRate, capacity)
-	}
-	return NewTokenLimiterMw(NewIPTokenExtractor(header), krakendrate.NewMemoryStore(maxRate, int(capacity)))
+	tokenExtractor := NewIPTokenExtractor(header)
+	return NewTokenLimiterMw(tokenExtractor, krakendrate.NewMemoryStore(maxRate, int(capacity)))
 }
 
 // NewIpLimiterWithKeyMwFromCfg creates a token ratelimiter using the IP of the request as a token
 func NewIpLimiterWithKeyMwFromCfg(cfg router.Config) EndpointMw {
-	store := krakendrate.NewLimiterStore(
-		cfg.ClientMaxRate,
-		int(cfg.ClientCapacity),
-		krakendrate.NewShardedMemoryBackend(
-			context.Background(),
-			krakendrate.DefaultShards,
-			cfg.TTL,
-			krakendrate.PseudoFNV64a,
-		),
-	)
-	if cfg.Key == "" {
-		return NewTokenLimiterMw(IPTokenExtractor, store)
-	}
-	return NewTokenLimiterMw(NewIPTokenExtractor(cfg.Key), store)
-}
-
-// TokenExtractor defines the interface of the functions to use in order to extract a token for each request
-type TokenExtractor func(*gin.Context) string
-
-// IPTokenExtractor extracts the IP of the request
-func IPTokenExtractor(c *gin.Context) string { return c.ClientIP() }
-
-// NewIPTokenExtractor generates an IP TokenExtractor checking first for the contents of the passed header.
-// If nothing is found there, the regular IPTokenExtractor function is called.
-func NewIPTokenExtractor(header string) TokenExtractor {
-	return func(c *gin.Context) string {
-		if clientIP := strings.TrimSpace(strings.Split(c.Request.Header.Get(header), ",")[0]); clientIP != "" {
-			ip := strings.Split(clientIP, ":")[0]
-			if parsedIP := net.ParseIP(ip); parsedIP != nil {
-				return ip
-			}
-		}
-		return IPTokenExtractor(c)
-	}
-}
-
-// HeaderTokenExtractor returns a TokenExtractor that looks for the value of the designed header
-func HeaderTokenExtractor(header string) TokenExtractor {
-	return func(c *gin.Context) string { return c.Request.Header.Get(header) }
+	store := StoreFromCfg(cfg)
+	tokenExtractor := NewIPTokenExtractor(cfg.Key)
+	return NewTokenLimiterMw(tokenExtractor, store)
 }
 
 // NewTokenLimiterMw returns a token based ratelimiting endpoint middleware with the received TokenExtractor and LimiterStore

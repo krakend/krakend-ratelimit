@@ -27,6 +27,7 @@ type Config struct {
 	ClientCapacity uint64
 	Key            string
 	TTL            time.Duration
+	NumShards      uint64
 }
 
 // ZeroCfg is the zero value for the Config struct
@@ -108,6 +109,17 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 
 		if every > cfg.TTL {
 			cfg.TTL = time.Duration(int64((1 + 0.25*rand.Float64()) * float64(every)))
+		}
+	}
+	cfg.NumShards = krakendrate.DefaultShards
+	if v, ok := tmp["num_shards"]; ok {
+		switch val := v.(type) {
+		case int64:
+			cfg.NumShards = uint64(val)
+		case int:
+			cfg.NumShards = uint64(val)
+		case float64:
+			cfg.NumShards = uint64(val)
 		}
 	}
 
