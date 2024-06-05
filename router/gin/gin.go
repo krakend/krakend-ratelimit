@@ -3,7 +3,6 @@ package gin
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/luraproject/lura/v2/config"
@@ -41,42 +40,54 @@ func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) kra
 func RateLimiterWrapperFromCfg(logger logging.Logger, logPrefix string, cfg router.Config,
 	handler gin.HandlerFunc) gin.HandlerFunc {
 
-	if cfg.MaxRate <= 0 && cfg.ClientMaxRate <= 0 {
+	return applyClientRateLimit(logger, logPrefix, cfg,
+		applyGlobalRateLimit(logger, logPrefix, cfg, handler))
+}
+
+func applyGlobalRateLimit(logger logging.Logger, logPrefix string, cfg router.Config,
+	handler gin.HandlerFunc) gin.HandlerFunc {
+
+	if cfg.MaxRate <= 0 {
 		return handler
 	}
 
-	if cfg.MaxRate > 0 {
-		if cfg.Capacity == 0 {
-			if cfg.MaxRate < 1 {
-				cfg.Capacity = 1
-			} else {
-				cfg.Capacity = uint64(cfg.MaxRate)
-			}
+	if cfg.Capacity == 0 {
+		if cfg.MaxRate < 1 {
+			cfg.Capacity = 1
+		} else {
+			cfg.Capacity = uint64(cfg.MaxRate)
 		}
-		logger.Debug(logPrefix, fmt.Sprintf("Rate limit enabled. MaxRate: %f, Capacity: %d", cfg.MaxRate, cfg.Capacity))
-		handler = NewEndpointRateLimiterMw(krakendrate.NewTokenBucket(cfg.MaxRate, cfg.Capacity))(handler)
 	}
 
-	if cfg.ClientMaxRate > 0 {
-		if cfg.ClientCapacity == 0 {
-			if cfg.MaxRate < 1 {
-				cfg.ClientCapacity = 1
-			} else {
-				cfg.ClientCapacity = uint64(cfg.ClientMaxRate)
-			}
-		}
-		switch strategy := strings.ToLower(cfg.Strategy); strategy {
-		case "ip":
-			logger.Debug(logPrefix, fmt.Sprintf("IP-based rate limit enabled. MaxRate: %f, Capacity: %d", cfg.ClientMaxRate, cfg.ClientCapacity))
-			handler = NewIpLimiterWithKeyMwFromCfg(cfg)(handler)
-		case "header":
-			logger.Debug(logPrefix, fmt.Sprintf("Header-based rate limit enabled. MaxRate: %f, Capacity: %d", cfg.ClientMaxRate, cfg.ClientCapacity))
-			handler = NewHeaderLimiterMwFromCfg(cfg)(handler)
-		default:
-			logger.Warning(logPrefix, "Unknown strategy", strategy)
+	logger.Debug(logPrefix, fmt.Sprintf("Rate limit enabled. MaxRate: %f, Capacity: %d", cfg.MaxRate, cfg.Capacity))
+	return NewEndpointRateLimiterMw(krakendrate.NewTokenBucket(cfg.MaxRate, cfg.Capacity))(handler)
+}
+
+func applyClientRateLimit(logger logging.Logger, logPrefix string, cfg router.Config,
+	handler gin.HandlerFunc) gin.HandlerFunc {
+
+	if cfg.ClientMaxRate <= 0 {
+		return handler
+	}
+	if cfg.ClientCapacity == 0 {
+		if cfg.MaxRate < 1 {
+			cfg.ClientCapacity = 1
+		} else {
+			cfg.ClientCapacity = uint64(cfg.ClientMaxRate)
 		}
 	}
-	return handler
+
+	tokenExtractor, err := TokenExtractorFromCfg(cfg)
+	if err != nil {
+		logger.Warning(logPrefix, "Unknown strategy", cfg.Strategy)
+		return handler
+	}
+	logger.Debug(logPrefix,
+		fmt.Sprintf("Rate limit enabled. Strategy: %s (key: %s), MaxRate: %f, Capacity: %d",
+			cfg.Strategy, cfg.Key, cfg.ClientMaxRate, cfg.ClientCapacity))
+	store := StoreFromCfg(cfg)
+
+	return NewTokenLimiterMw(tokenExtractor, store)(handler)
 }
 
 // EndpointMw is a function that decorates the received handlerFunc with some rateliming logic
