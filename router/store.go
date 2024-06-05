@@ -1,13 +1,12 @@
-package gin
+package router
 
 import (
 	"context"
 
 	krakendrate "github.com/krakendio/krakend-ratelimit/v3"
-	"github.com/krakendio/krakend-ratelimit/v3/router"
 )
 
-func StoreFromCfg(cfg router.Config) krakendrate.LimiterStore {
+func StoreFromCfg(cfg Config) krakendrate.LimiterStore {
 	ctx := context.Background()
 	var storeBackend krakendrate.Backend
 	if cfg.NumShards > 1 {

@@ -85,7 +85,7 @@ func applyClientRateLimit(logger logging.Logger, logPrefix string, cfg router.Co
 	logger.Debug(logPrefix,
 		fmt.Sprintf("Rate limit enabled. Strategy: %s (key: %s), MaxRate: %f, Capacity: %d",
 			cfg.Strategy, cfg.Key, cfg.ClientMaxRate, cfg.ClientCapacity))
-	store := StoreFromCfg(cfg)
+	store := router.StoreFromCfg(cfg)
 
 	return NewTokenLimiterMw(tokenExtractor, store)(handler)
 }
@@ -115,7 +115,7 @@ func NewHeaderLimiterMw(header string, maxRate float64, capacity uint64) Endpoin
 
 // NewHeaderLimiterMwFromCfg creates a token ratelimiter using the value of a header as a token
 func NewHeaderLimiterMwFromCfg(cfg router.Config) EndpointMw {
-	store := StoreFromCfg(cfg)
+	store := router.StoreFromCfg(cfg)
 	tokenExtractor := HeaderTokenExtractor(cfg.Key)
 	return NewTokenLimiterMw(tokenExtractor, store)
 }
@@ -135,7 +135,7 @@ func NewIpLimiterWithKeyMw(header string, maxRate float64, capacity uint64) Endp
 
 // NewIpLimiterWithKeyMwFromCfg creates a token ratelimiter using the IP of the request as a token
 func NewIpLimiterWithKeyMwFromCfg(cfg router.Config) EndpointMw {
-	store := StoreFromCfg(cfg)
+	store := router.StoreFromCfg(cfg)
 	tokenExtractor := NewIPTokenExtractor(cfg.Key)
 	return NewTokenLimiterMw(tokenExtractor, store)
 }
