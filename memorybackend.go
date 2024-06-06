@@ -53,7 +53,9 @@ func (m *MemoryBackend) manageEvictions(ctx context.Context, ttl time.Duration) 
 	}
 }
 
-// Load implements the Backend interface
+// Load implements the Backend interface.
+// The f function should always return a non nil value, or that nil value
+// will be assigned and returned on load.
 func (m *MemoryBackend) Load(key string, f func() interface{}) interface{} {
 	m.mu.RLock()
 	v, ok := m.data[key]
