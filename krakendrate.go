@@ -20,6 +20,15 @@ var (
 	now = time.Now
 )
 
+// Token conaints the key to use to find the Limiter. The extra
+// Data field can be anything (an http.Request, a contex.Context,
+// a map[string]interface{}...) that can be useful to tweak the search 
+// or creation of the Limiter, and that is 
+type Token struct {
+    Key     string
+    Data    interface{}     // Extra data that can be used 
+}
+
 // Limiter defines a simple interface for a rate limiter
 type Limiter interface {
 	Allow() bool
@@ -28,10 +37,15 @@ type Limiter interface {
 // LimiterStore defines the interface for a limiter lookup function
 type LimiterStore func(string) Limiter
 
+// LimiterBuilderFn defines the function that will be called when there
+// is no entry in the backend for a given token.
+// The ctx is passed so build
+type LimiterBuilderFn func(ctx contex.Context) interface{}
+
 // Backend is the interface of the persistence layer
 type Backend interface {
-	Load(string, func() interface{}) interface{}
-	Store(string, interface{}) error
+	Load(token *Token, limiterBuilder LimiterBuilderFn) Limiter
+	Store(token *Token, interface{}) error
 }
 
 // DefaultShardedMemoryBackend is a 2018 sharded ShardedMemoryBackend

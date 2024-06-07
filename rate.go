@@ -21,10 +21,6 @@ func NewLimiterStore(maxRate float64, capacity int, backend Backend) LimiterStor
 	}
 }
 
-// LimiterBuilderFn defines the function that will be called when there
-// is no entry in the backend for a given token.
-type LimiterBuilderFn func() interface{}
-
 // NewLimiterFromBackendAndBuilder
 func NewLimiterFromBackendAndBuilder(backend Backend, limiterBuilder LimiterBuilderFn) LimiterStore {
 	if limiterBuilder == nil {
