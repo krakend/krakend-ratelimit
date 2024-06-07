@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/krakendio/krakend-ratelimit/v3/router"
@@ -72,6 +71,25 @@ func TestNewRateLimiterMw_DefaultIP(t *testing.T) {
 	testRateLimiterMw(t, rd, cfg)
 }
 
+func TestNewRateLimiterMw_Param(t *testing.T) {
+	cfg := &config.EndpointConfig{
+		ExtraConfig: map[string]interface{}{
+			router.Namespace: map[string]interface{}{
+				"strategy":        "param",
+				"key":             "foo",
+				"client_max_rate": 100,
+				"client_capacity": 100,
+			},
+		},
+	}
+
+	rd := func(req *http.Request) {
+		req.URL.Path = "/something/lol/bla"
+	}
+
+	testRateLimiterMw(t, rd, cfg)
+}
+
 type requestDecorator func(*http.Request)
 
 func testRateLimiterMw(t *testing.T, rd requestDecorator, cfg *config.EndpointConfig) {
@@ -85,9 +103,9 @@ func testRateLimiterMw(t *testing.T, rd requestDecorator, cfg *config.EndpointCo
 	r := gin.New()
 
 	r.GET("/", HandlerFactory(cfg, p))
+	r.GET("/something/:foo/:bar", HandlerFactory(cfg, p))
 
 	total := 10000
-	start := time.Now()
 	for i := 0; i < total; i++ {
 		req, _ := http.NewRequest("GET", "/", http.NoBody)
 		rd(req)
@@ -108,8 +126,8 @@ func testRateLimiterMw(t *testing.T, rd requestDecorator, cfg *config.EndpointCo
 		t.Errorf("hits do not match the tracked oks: %d/%d", hits, ok)
 	}
 
-	if d := time.Since(start); d > time.Second {
-		return
+	if ko == 0 {
+		t.Errorf("no ratelimmit hit")
 	}
 
 	if ok+ko != int64(total) {

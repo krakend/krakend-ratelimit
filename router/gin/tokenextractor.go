@@ -42,16 +42,21 @@ func HeaderTokenExtractor(header string) TokenExtractor {
 	return func(c *gin.Context) string { return c.Request.Header.Get(header) }
 }
 
+// ParamTokenExtractor returns a TokenExtractor that uses a param a token
+func ParamTokenExtractor(param string) TokenExtractor {
+	return func(c *gin.Context) string { return c.Param(param) }
+}
+
+// TokenExtractorFromCfg selects the token extractor to use from the input config
 func TokenExtractorFromCfg(cfg router.Config) (TokenExtractor, error) {
 	switch strategy := strings.ToLower(cfg.Strategy); strategy {
 	case "ip":
-		// logger.Debug(logPrefix, fmt.Sprintf("IP-based rate limit enabled. MaxRate: %f, Capacity: %d", cfg.ClientMaxRate, cfg.ClientCapacity))
 		return NewIPTokenExtractor(cfg.Key), nil
 	case "header":
-		// logger.Debug(logPrefix, fmt.Sprintf("Header-based rate limit enabled. MaxRate: %f, Capacity: %d", cfg.ClientMaxRate, cfg.ClientCapacity))
 		return HeaderTokenExtractor(cfg.Key), nil
+	case "param":
+		return ParamTokenExtractor(cfg.Key), nil
 	default:
-		// logger.Warning(logPrefix, "Unknown strategy", strategy)
 		return nil, ErrNotFound
 	}
 
