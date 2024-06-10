@@ -112,7 +112,7 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 		}
 	}
 	cfg.NumShards = krakendrate.DefaultShards
-	if v, ok := tmp["num_shards"]; ok {
+	if v, ok := tmp["max_rate_concurrency"]; ok {
 		switch val := v.(type) {
 		case int64:
 			cfg.NumShards = uint64(val)

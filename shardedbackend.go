@@ -10,7 +10,7 @@ type Hasher func(string) uint64
 
 // BackendBuilder is the type for a function that can build a Backend.
 // Is is used by the ShardedMemoryBackend to create several backends / shards.
-type BackendBuilder func(ctx context.Context, ttl time.Duration) Backend
+type BackendBuilder func(ctx context.Context, ttl time.Duration, amount uint64) []Backend
 
 // ShardedMemoryBackend is a memory backend shardering the data in order to avoid mutex contention
 type ShardedMemoryBackend struct {
@@ -28,13 +28,9 @@ func NewShardedBackend(ctx context.Context, shards uint64, ttl time.Duration, h 
 	backendBuilder BackendBuilder) *ShardedMemoryBackend {
 
 	b := &ShardedMemoryBackend{
-		shards: make([]Backend, shards),
+		shards: backendBuilder(ctx, ttl, shards),
 		total:  shards,
 		hasher: h,
-	}
-	var i uint64
-	for i = 0; i < shards; i++ {
-		b.shards[i] = backendBuilder(ctx, ttl)
 	}
 	return b
 }

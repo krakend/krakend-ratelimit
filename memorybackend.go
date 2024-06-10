@@ -7,20 +7,36 @@ import (
 	"time"
 )
 
-func MemoryBackendBuilder(ctx context.Context, ttl time.Duration) Backend {
-	return NewMemoryBackend(ctx, ttl)
+func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, amount uint64) []Backend {
+	if amount == 0 {
+		return []Backend{}
+	}
+	backends := make([]MemoryBackend, amount)
+	for idx, _ := range backends {
+		backends[idx].data = map[string]interface{}{}
+		backends[idx].lastAccess = map[string]time.Time{}
+		backends[idx].mu = new(sync.RWMutex)
+	}
+
+	rv := make([]Backend, amount)
+	for idx, _ := range backends {
+		rv[idx] = &(backends[idx])
+	}
+	go manageEvictions(ctx, ttl, backends)
+	return rv
 }
 
 func NewMemoryBackend(ctx context.Context, ttl time.Duration) *MemoryBackend {
-	m := &MemoryBackend{
-		data:       map[string]interface{}{},
-		lastAccess: map[string]time.Time{},
-		mu:         new(sync.RWMutex),
+	backends := []MemoryBackend{
+		MemoryBackend{
+			data:       map[string]interface{}{},
+			lastAccess: map[string]time.Time{},
+			mu:         new(sync.RWMutex),
+		},
 	}
+	go manageEvictions(ctx, ttl, backends)
 
-	go m.manageEvictions(ctx, ttl)
-
-	return m
+	return &(backends[0])
 }
 
 // MemoryBackend implements the backend interface by wrapping a sync.Map
@@ -30,26 +46,34 @@ type MemoryBackend struct {
 	mu         *sync.RWMutex
 }
 
-func (m *MemoryBackend) manageEvictions(ctx context.Context, ttl time.Duration) {
+func manageEvictions(ctx context.Context, ttl time.Duration, backends []MemoryBackend) {
 	t := time.NewTicker(ttl)
 	for {
-		var keysToDel []string
-
 		select {
 		case <-ctx.Done():
 			t.Stop()
 			return
 		case now := <-t.C:
-			m.mu.RLock()
-			for k, v := range m.lastAccess {
-				if v.Add(ttl).Before(now) {
-					keysToDel = append(keysToDel, k)
+			for idx, _ := range backends {
+				// We need to do a write lock, because between collecting the keys
+				// to delete, and the actual deletion, another thread could have
+				// hit one of the keys to delete.
+				//
+				// TODO: review this :
+				// A different optimization would be not be "data agnostic", and
+				// define an interface that allows to reause already allocated
+				// data (like a Pool of token buckets).
+				backends[idx].mu.Lock()
+				// TODO: we could make this an array ? and the map only for the index ?
+				for k, v := range backends[idx].lastAccess {
+					if v.Add(ttl).Before(now) {
+						delete(backends[idx].data, k)
+						delete(backends[idx].lastAccess, k)
+					}
 				}
+				backends[idx].mu.Unlock()
 			}
-			m.mu.RUnlock()
 		}
-
-		m.del(keysToDel...)
 	}
 }
 
@@ -57,53 +81,48 @@ func (m *MemoryBackend) manageEvictions(ctx context.Context, ttl time.Duration) 
 // The f function should always return a non nil value, or that nil value
 // will be assigned and returned on load.
 func (m *MemoryBackend) Load(key string, f func() interface{}) interface{} {
+	var lastAccess time.Time
+	lastAccessOk := true
+
 	m.mu.RLock()
 	v, ok := m.data[key]
+	if ok {
+		lastAccess, lastAccessOk = m.lastAccess[key]
+	}
 	m.mu.RUnlock()
 
 	n := now()
-
 	if ok {
-		go func(t time.Time) {
+		if !lastAccessOk || n.After(lastAccess) {
 			m.mu.Lock()
-			if t0, ok := m.lastAccess[key]; !ok || t.After(t0) {
-				m.lastAccess[key] = t
-			}
+			m.lastAccess[key] = n
 			m.mu.Unlock()
-		}(n)
-
+		}
 		return v
 	}
 
+	// we create the new associated data outside the loop (we will
+	// discard it if it is already set in parallel by another thread)
+	newData := f()
 	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	v, ok = m.data[key]
-	if ok {
+	if ok { // some other thread has just created the value
+		m.mu.Unlock()
 		return v
 	}
-
-	v = f()
 	m.lastAccess[key] = n
-	m.data[key] = v
-
-	return v
+	m.data[key] = newData
+	m.mu.Unlock()
+	return newData
 }
 
 // Store implements the Backend interface
+// TODO: we might want to remove this function if we do not expect
+// any other external code to store a value
 func (m *MemoryBackend) Store(key string, v interface{}) error {
 	m.mu.Lock()
 	m.lastAccess[key] = now()
 	m.data[key] = v
 	m.mu.Unlock()
 	return nil
-}
-
-func (m *MemoryBackend) del(key ...string) {
-	m.mu.Lock()
-	for _, k := range key {
-		delete(m.data, k)
-		delete(m.lastAccess, k)
-	}
-	m.mu.Unlock()
 }

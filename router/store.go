@@ -18,7 +18,7 @@ func StoreFromCfg(cfg Config) krakendrate.LimiterStore {
 			krakendrate.MemoryBackendBuilder,
 		)
 	} else {
-		storeBackend = krakendrate.MemoryBackendBuilder(ctx, cfg.TTL)
+		storeBackend = krakendrate.MemoryBackendBuilder(ctx, cfg.TTL, 1)[0]
 	}
 
 	return krakendrate.NewLimiterStore(cfg.ClientMaxRate, int(cfg.ClientCapacity),
