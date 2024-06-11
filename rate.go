@@ -12,8 +12,6 @@ func NewMemoryStore(maxRate float64, capacity int) LimiterStore {
 }
 
 // NewLimiterStore returns a LimiterStore using the received backend for persistence
-//
-// Deprecated: Use NewLimiterStore instead
 func NewLimiterStore(maxRate float64, capacity int, backend Backend) LimiterStore {
 	f := NewTokenBucketBuilder(maxRate, uint64(capacity), uint64(capacity), nil)
 	return func(t string) Limiter {

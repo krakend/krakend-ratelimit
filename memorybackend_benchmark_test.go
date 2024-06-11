@@ -2,7 +2,7 @@ package krakendrate
 
 import (
 	"context"
-	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"math/rand"
@@ -14,7 +14,7 @@ func generateTestKeys(num int, length int) []string {
 	res := make([]string, 0, num)
 
 	r := rand.New(rand.NewSource(int64(num)))
-	h := md5.New()
+	h := sha256.New()
 
 	for i := 0; i < num; i++ {
 		io.WriteString(h, fmt.Sprintf("%x", r.Int()))
