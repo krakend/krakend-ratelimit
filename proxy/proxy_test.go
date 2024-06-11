@@ -11,6 +11,11 @@ import (
 	"github.com/luraproject/lura/v2/proxy"
 )
 
+/*
+In previous versions of Lura, the returned EmptyMiddleware
+used to panic when too many proxies were provided. However,
+the behaviour has changed, and now logs with a Fatal, that
+instead of panicking exits:
 func TestNewMiddleware_multipleNext(t *testing.T) {
 	defer func() {
 		if r := recover(); r != proxy.ErrTooManyProxies {
@@ -19,6 +24,7 @@ func TestNewMiddleware_multipleNext(t *testing.T) {
 	}()
 	NewMiddleware(logging.NoOp, &config.Backend{})(proxy.NoopProxy, proxy.NoopProxy)
 }
+*/
 
 func TestNewMiddleware_zeroConfig(t *testing.T) {
 	for _, cfg := range []*config.Backend{
