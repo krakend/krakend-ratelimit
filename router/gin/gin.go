@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -109,7 +110,7 @@ func NewEndpointRateLimiterMw(tb *krakendrate.TokenBucket) EndpointMw {
 //
 // Deprecated: Use NewHeaderLimiterMwFromCfg instead
 func NewHeaderLimiterMw(header string, maxRate float64, capacity uint64) EndpointMw {
-	return NewTokenLimiterMw(HeaderTokenExtractor(header), krakendrate.NewMemoryStore(maxRate, int(capacity),
+	return NewTokenLimiterMw(HeaderTokenExtractor(header), krakendrate.NewLimiterStore(maxRate, int(capacity),
 		krakendrate.DefaultShardedMemoryBackend(context.Background())))
 }
 
@@ -131,7 +132,7 @@ func NewIpLimiterMw(maxRate float64, capacity uint64) EndpointMw {
 // Deprecated: Use NewIpLimiterWithKeyMwFromCfg instead
 func NewIpLimiterWithKeyMw(header string, maxRate float64, capacity uint64) EndpointMw {
 	tokenExtractor := NewIPTokenExtractor(header)
-	return NewTokenLimiterMw(tokenExtractor, krakendrate.NewMemoryStore(maxRate, int(capacity),
+	return NewTokenLimiterMw(tokenExtractor, krakendrate.NewLimiterStore(maxRate, int(capacity),
 		krakendrate.DefaultShardedMemoryBackend(context.Background())))
 }
 
