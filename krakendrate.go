@@ -34,7 +34,7 @@ type Backend interface {
 	Store(string, interface{}) error
 }
 
-// DefaultShardedMemoryBackend is a 2018 sharded ShardedMemoryBackend
+// DefaultShardedMemoryBackend is a 2048 sharded ShardedMemoryBackend
 func DefaultShardedMemoryBackend(ctx context.Context) *ShardedMemoryBackend {
 	return NewShardedMemoryBackend(ctx, DefaultShards, DataTTL, PseudoFNV64a)
 }

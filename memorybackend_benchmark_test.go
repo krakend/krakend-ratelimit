@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"io"
 	"math/rand"
 	"testing"
 	"time"
@@ -17,7 +16,7 @@ func generateTestKeys(num int, length int) []string {
 	h := sha256.New()
 
 	for i := 0; i < num; i++ {
-		io.WriteString(h, fmt.Sprintf("%x", r.Int()))
+		fmt.Fprintf(h, "%x", r.Int())
 		res = append(res, fmt.Sprintf("%x", h.Sum(nil))[:length])
 	}
 	return res
