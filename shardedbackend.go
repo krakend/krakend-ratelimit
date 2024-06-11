@@ -25,8 +25,8 @@ func NewShardedMemoryBackend(ctx context.Context, shards uint64, ttl time.Durati
 }
 
 func NewShardedBackend(ctx context.Context, shards uint64, ttl time.Duration, h Hasher,
-	backendBuilder BackendBuilder) *ShardedMemoryBackend {
-
+	backendBuilder BackendBuilder,
+) *ShardedMemoryBackend {
 	b := &ShardedMemoryBackend{
 		shards: backendBuilder(ctx, ttl, shards),
 		total:  shards,

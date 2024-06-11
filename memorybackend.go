@@ -12,14 +12,14 @@ func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, amount uint64)
 		return []Backend{}
 	}
 	backends := make([]MemoryBackend, amount)
-	for idx, _ := range backends {
+	for idx := range backends {
 		backends[idx].data = map[string]interface{}{}
 		backends[idx].lastAccess = map[string]time.Time{}
 		backends[idx].mu = new(sync.RWMutex)
 	}
 
 	rv := make([]Backend, amount)
-	for idx, _ := range backends {
+	for idx := range backends {
 		rv[idx] = &(backends[idx])
 	}
 	go manageEvictions(ctx, ttl, backends)
@@ -28,7 +28,7 @@ func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, amount uint64)
 
 func NewMemoryBackend(ctx context.Context, ttl time.Duration) *MemoryBackend {
 	backends := []MemoryBackend{
-		MemoryBackend{
+		{
 			data:       map[string]interface{}{},
 			lastAccess: map[string]time.Time{},
 			mu:         new(sync.RWMutex),
@@ -54,7 +54,7 @@ func manageEvictions(ctx context.Context, ttl time.Duration, backends []MemoryBa
 			t.Stop()
 			return
 		case now := <-t.C:
-			for idx, _ := range backends {
+			for idx := range backends {
 				// We need to do a write lock, because between collecting the keys
 				// to delete, and the actual deletion, another thread could have
 				// hit one of the keys to delete.
