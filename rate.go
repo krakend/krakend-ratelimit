@@ -23,7 +23,8 @@ func NewLimiterStore(maxRate float64, capacity int, backend Backend) LimiterStor
 // is no entry in the backend for a given token.
 type LimiterBuilderFn func() interface{}
 
-// NewLimiterFromBackendAndBuilder
+// NewLimiterFromBackendAndBuilder creates a LimiterStore that uses limiterBuilder to
+// creat new token buckets.
 func NewLimiterFromBackendAndBuilder(backend Backend, limiterBuilder LimiterBuilderFn) LimiterStore {
 	if limiterBuilder == nil {
 		limiterBuilder = NewTokenBucketBuilder(1, 1, 1, nil)
