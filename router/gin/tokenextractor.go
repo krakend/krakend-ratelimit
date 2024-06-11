@@ -10,9 +10,7 @@ import (
 	"github.com/krakendio/krakend-ratelimit/v3/router"
 )
 
-var (
-	ErrNotFound = errors.New("not found")
-)
+var ErrNotFound = errors.New("not found")
 
 // TokenExtractor defines the interface of the functions to use in order to extract a token for each request
 type TokenExtractor func(*gin.Context) string
