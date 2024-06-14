@@ -32,7 +32,7 @@ func BenchmarkShardedBackend(b *testing.B) {
 
 	for _, tc := range t {
 		b.Run(fmt.Sprintf("loads_%d_keep_%d_evict_%d", tc.keep*10+tc.evict, tc.keep, tc.evict), func(b *testing.B) {
-			sb := NewShardedBackend(ctx, 2048, ttl, ttl, PseudoFNV64a, MemoryBackendBuilder)
+			sb := NewShardedBackend(ctx, 2048, ttl, ttl, 1, PseudoFNV64a, MemoryBackendBuilder)
 			for i := 0; i < b.N; i++ {
 				numMax := tc.keep
 				if tc.evict > tc.keep {

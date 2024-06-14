@@ -7,7 +7,8 @@ import (
 	"time"
 )
 
-func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, cleanupRate time.Duration, amount uint64) []Backend {
+func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, cleanupRate time.Duration,
+	cleanUpThreads uint64, amount uint64) []Backend {
 	if amount == 0 {
 		return []Backend{}
 	}
@@ -22,7 +23,24 @@ func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, cleanupRate ti
 	for idx := range backends {
 		rv[idx] = &(backends[idx])
 	}
-	go manageEvictions(ctx, ttl, cleanupRate, backends)
+
+	if cleanUpThreads <= 1 {
+		go manageEvictions(ctx, ttl, cleanupRate, backends)
+		return rv
+	}
+
+	if cleanUpThreads > amount {
+		// Nop, we wont create more clean up threads than the number of shards
+		cleanUpThreads = amount
+	}
+
+	from := 0
+	for i := uint64(1); i <= cleanUpThreads; i++ {
+		to := int((i * amount) / cleanUpThreads)
+		go manageEvictions(ctx, ttl, cleanupRate, backends[from:to])
+		from = to
+	}
+
 	return rv
 }
 
