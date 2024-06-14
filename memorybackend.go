@@ -58,13 +58,7 @@ func manageEvictions(ctx context.Context, ttl time.Duration, backends []MemoryBa
 				// We need to do a write lock, because between collecting the keys
 				// to delete, and the actual deletion, another thread could have
 				// hit one of the keys to delete.
-				//
-				// TODO: review this :
-				// A different optimization would be not be "data agnostic", and
-				// define an interface that allows to reause already allocated
-				// data (like a Pool of token buckets).
 				backends[idx].mu.Lock()
-				// TODO: we could make this an array ? and the map only for the index ?
 				for k, v := range backends[idx].lastAccess {
 					if v.Add(ttl).Before(now) {
 						delete(backends[idx].data, k)
@@ -117,8 +111,6 @@ func (m *MemoryBackend) Load(key string, f func() interface{}) interface{} {
 }
 
 // Store implements the Backend interface
-// TODO: we might want to remove this function if we do not expect
-// any other external code to store a value
 func (m *MemoryBackend) Store(key string, v interface{}) error {
 	m.mu.Lock()
 	m.lastAccess[key] = now()
