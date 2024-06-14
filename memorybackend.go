@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, amount uint64) []Backend {
+func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, cleanupRate time.Duration, amount uint64) []Backend {
 	if amount == 0 {
 		return []Backend{}
 	}
@@ -22,7 +22,7 @@ func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, amount uint64)
 	for idx := range backends {
 		rv[idx] = &(backends[idx])
 	}
-	go manageEvictions(ctx, ttl, backends)
+	go manageEvictions(ctx, ttl, cleanupRate, backends)
 	return rv
 }
 
@@ -34,7 +34,8 @@ func NewMemoryBackend(ctx context.Context, ttl time.Duration) *MemoryBackend {
 			mu:         new(sync.RWMutex),
 		},
 	}
-	go manageEvictions(ctx, ttl, backends)
+	// to maintain backards compat, we use ttl as the cleanup rate:
+	go manageEvictions(ctx, ttl, ttl, backends)
 
 	return &(backends[0])
 }
@@ -46,8 +47,8 @@ type MemoryBackend struct {
 	mu         *sync.RWMutex
 }
 
-func manageEvictions(ctx context.Context, ttl time.Duration, backends []MemoryBackend) {
-	t := time.NewTicker(ttl)
+func manageEvictions(ctx context.Context, ttl time.Duration, cleanupRate time.Duration, backends []MemoryBackend) {
+	t := time.NewTicker(cleanupRate)
 	for {
 		select {
 		case <-ctx.Done():
