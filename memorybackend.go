@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, cleanupRate time.Duration,
-	cleanUpThreads uint64, amount uint64) []Backend {
+func MemoryBackendBuilder(ctx context.Context, ttl, cleanupRate time.Duration,
+	cleanUpThreads, amount uint64) []Backend {
 	if amount == 0 {
 		return []Backend{}
 	}
