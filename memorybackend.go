@@ -8,7 +8,8 @@ import (
 )
 
 func MemoryBackendBuilder(ctx context.Context, ttl, cleanupRate time.Duration,
-	cleanUpThreads, amount uint64) []Backend {
+	cleanUpThreads, amount uint64,
+) []Backend {
 	if amount == 0 {
 		return []Backend{}
 	}
