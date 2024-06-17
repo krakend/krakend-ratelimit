@@ -66,7 +66,7 @@ type MemoryBackend struct {
 	mu         *sync.RWMutex
 }
 
-func manageEvictions(ctx context.Context, ttl time.Duration, cleanupRate time.Duration, backends []MemoryBackend) {
+func manageEvictions(ctx context.Context, ttl, cleanupRate time.Duration, backends []MemoryBackend) {
 	t := time.NewTicker(cleanupRate)
 	for {
 		select {

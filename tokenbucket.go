@@ -49,7 +49,7 @@ func NewTokenBucketWithInitialStock(r float64, capacity, i uint64, c Clock) *Tok
 	}
 }
 
-func NewTokenBucketBuilder(rate float64, capacity uint64, initialStock uint64, clk Clock) LimiterBuilderFn {
+func NewTokenBucketBuilder(rate float64, capacity, initialStock uint64, clk Clock) LimiterBuilderFn {
 	// we do not call NewTokenBucketWithIntialStock inside the returned function to
 	// avoid the following block of checks that can be done just once
 	if clk == nil {
