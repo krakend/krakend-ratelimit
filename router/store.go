@@ -14,13 +14,13 @@ func StoreFromCfg(cfg Config) krakendrate.LimiterStore {
 			ctx,
 			cfg.NumShards,
 			cfg.TTL,
-			cfg.CleanUpRate,
+			cfg.CleanUpPeriod,
 			1,
 			krakendrate.PseudoFNV64a,
 			krakendrate.MemoryBackendBuilder,
 		)
 	} else {
-		storeBackend = krakendrate.MemoryBackendBuilder(ctx, cfg.TTL, cfg.CleanUpRate, 1, 1)[0]
+		storeBackend = krakendrate.MemoryBackendBuilder(ctx, cfg.TTL, cfg.CleanUpPeriod, 1, 1)[0]
 	}
 
 	return krakendrate.NewLimiterStore(cfg.ClientMaxRate, int(cfg.ClientCapacity),
