@@ -7,7 +7,9 @@ import (
 	"time"
 )
 
-func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, amount uint64) []Backend {
+func MemoryBackendBuilder(ctx context.Context, ttl, cleanupRate time.Duration,
+	cleanUpThreads, amount uint64,
+) []Backend {
 	if amount == 0 {
 		return []Backend{}
 	}
@@ -22,7 +24,24 @@ func MemoryBackendBuilder(ctx context.Context, ttl time.Duration, amount uint64)
 	for idx := range backends {
 		rv[idx] = &(backends[idx])
 	}
-	go manageEvictions(ctx, ttl, backends)
+
+	if cleanUpThreads <= 1 {
+		go manageEvictions(ctx, ttl, cleanupRate, backends)
+		return rv
+	}
+
+	if cleanUpThreads > amount {
+		// Nop, we wont create more clean up threads than the number of shards
+		cleanUpThreads = amount
+	}
+
+	from := 0
+	for i := uint64(1); i <= cleanUpThreads; i++ {
+		to := int((i * amount) / cleanUpThreads)
+		go manageEvictions(ctx, ttl, cleanupRate, backends[from:to])
+		from = to
+	}
+
 	return rv
 }
 
@@ -34,7 +53,8 @@ func NewMemoryBackend(ctx context.Context, ttl time.Duration) *MemoryBackend {
 			mu:         new(sync.RWMutex),
 		},
 	}
-	go manageEvictions(ctx, ttl, backends)
+	// to maintain backards compat, we use ttl as the cleanup rate:
+	go manageEvictions(ctx, ttl, ttl, backends)
 
 	return &(backends[0])
 }
@@ -46,8 +66,8 @@ type MemoryBackend struct {
 	mu         *sync.RWMutex
 }
 
-func manageEvictions(ctx context.Context, ttl time.Duration, backends []MemoryBackend) {
-	t := time.NewTicker(ttl)
+func manageEvictions(ctx context.Context, ttl time.Duration, cleanupRate time.Duration, backends []MemoryBackend) {
+	t := time.NewTicker(cleanupRate)
 	for {
 		select {
 		case <-ctx.Done():
