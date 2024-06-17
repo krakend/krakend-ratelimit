@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func generateTestKeys(num int, length int) []string {
+func generateTestKeys(num, length int) []string {
 	res := make([]string, 0, num)
 
 	r := rand.New(rand.NewSource(int64(num)))
