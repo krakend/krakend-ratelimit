@@ -27,6 +27,9 @@ type Config struct {
 	ClientCapacity uint64
 	Key            string
 	TTL            time.Duration
+	NumShards      uint64
+	CleanUpPeriod  time.Duration
+	CleanUpThreads uint64
 }
 
 // ZeroCfg is the zero value for the Config struct
@@ -108,6 +111,40 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 
 		if every > cfg.TTL {
 			cfg.TTL = time.Duration(int64((1 + 0.25*rand.Float64()) * float64(every)))
+		}
+	}
+	cfg.NumShards = krakendrate.DefaultShards
+	if v, ok := tmp["num_shards"]; ok {
+		switch val := v.(type) {
+		case int64:
+			cfg.NumShards = uint64(val)
+		case int:
+			cfg.NumShards = uint64(val)
+		case float64:
+			cfg.NumShards = uint64(val)
+		}
+	}
+	cfg.CleanUpPeriod = time.Minute
+	if v, ok := tmp["cleanup_period"]; ok {
+		cr, err := time.ParseDuration(fmt.Sprintf("%v", v))
+		if err != nil {
+			cr = time.Minute
+		}
+		// we hardcode a minimum time
+		if cr < time.Second {
+			cr = time.Second
+		}
+		cfg.CleanUpPeriod = cr
+	}
+	cfg.CleanUpThreads = 1
+	if v, ok := tmp["cleanup_threads"]; ok {
+		switch val := v.(type) {
+		case int64:
+			cfg.CleanUpThreads = uint64(val)
+		case int:
+			cfg.CleanUpThreads = uint64(val)
+		case float64:
+			cfg.CleanUpThreads = uint64(val)
 		}
 	}
 
