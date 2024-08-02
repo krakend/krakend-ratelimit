@@ -102,7 +102,7 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 	cfg.TTL = krakendrate.DataTTL
 	if v, ok := tmp["every"]; ok {
 		every, err := time.ParseDuration(fmt.Sprintf("%v", v))
-		if err != nil {
+		if err != nil || every < time.Second {
 			every = time.Second
 		}
 		factor := float64(time.Second) / float64(every)
