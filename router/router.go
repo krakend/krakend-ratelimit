@@ -20,16 +20,16 @@ const Namespace = "qos/ratelimit/router"
 
 // Config is the custom config struct containing the params for the router middlewares
 type Config struct {
-	MaxRate        float64
-	Capacity       uint64
-	Strategy       string
-	ClientMaxRate  float64
-	ClientCapacity uint64
-	Key            string
-	TTL            time.Duration
-	NumShards      uint64
-	CleanUpPeriod  time.Duration
-	CleanUpThreads uint64
+	MaxRate        float64       `json:"max_rate"`
+	Capacity       uint64        `json:"capacity"`
+	Strategy       string        `json:"strategy"`
+	ClientMaxRate  float64       `json:"client_max_rate"`
+	ClientCapacity uint64        `json:"client_capacity"`
+	Key            string        `json:"key"`
+	TTL            time.Duration `json:"every"`
+	NumShards      uint64        `json:"num_shards"`
+	CleanUpPeriod  time.Duration `json:"cleanup_period"`
+	CleanUpThreads uint64        `json:"cleanup_threads"`
 }
 
 // ZeroCfg is the zero value for the Config struct
