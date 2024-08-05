@@ -51,8 +51,8 @@ const Namespace = "qos/ratelimit/proxy"
 
 // Config is the custom config struct containing the params for the limiter
 type Config struct {
-	MaxRate  float64
-	Capacity uint64
+	MaxRate  float64 `json:"max_rate"`
+	Capacity uint64  `json:"capacity"`
 }
 
 // BackendFactory adds a ratelimiting middleware wrapping the internal factory
