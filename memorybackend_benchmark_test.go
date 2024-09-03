@@ -12,7 +12,8 @@ import (
 func generateTestKeys(num, length int) []string {
 	res := make([]string, 0, num)
 
-	r := rand.New(rand.NewSource(int64(num)))
+	// we do not need crypto strength random number to test
+	r := rand.New(rand.NewSource(int64(num))) // skipcq: GSC-G404
 	h := sha256.New()
 
 	for i := 0; i < num; i++ {
