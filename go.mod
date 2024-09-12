@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/luraproject/lura/v2 v2.6.3
+	github.com/luraproject/lura/v2 v2.7.0
 )
 
 require (

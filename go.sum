@@ -35,8 +35,8 @@ github.com/krakendio/flatmap v1.1.1 h1:rGBNVpBY0pMk6cLOwerVzoKY4HELnpu0xvqB231lO
 github.com/krakendio/flatmap v1.1.1/go.mod h1:KBuVkiH5BcBFRa5A1HdSHDn8a8LzsyRTKZArX0vqTbo=
 github.com/leodido/go-urn v1.2.4 h1:XlAE/cm/ms7TE/VMVoduSpNBoyc2dOxHs5MZSwAN63Q=
 github.com/leodido/go-urn v1.2.4/go.mod h1:7ZrI8mTSeBSHl/UaRyKQW1qZeMgak41ANeCNaVckg+4=
-github.com/luraproject/lura/v2 v2.6.3 h1:4EQynK35ui2o/t7REh1QR+XCPCQhA/kF9h5JTQK8M0o=
-github.com/luraproject/lura/v2 v2.6.3/go.mod h1:M3TOzbvde5k7f5gGX4GVw3J1UJDYWPtDjHI0KOHbYc0=
+github.com/luraproject/lura/v2 v2.7.0 h1:9s4Pt56zBfZMLRW+igfa3tWxJJXpOcEnmVpWUkDyr3s=
+github.com/luraproject/lura/v2 v2.7.0/go.mod h1:D0+LPLJAuT9DcfjB4xvVMCnKmAMQikdbcXmYLdmEA6A=
 github.com/mattn/go-isatty v0.0.19 h1:JITubQf0MOLdlGRuRq+jtsDlekdYPia9ZFsB8h/APPA=
 github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
