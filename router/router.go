@@ -110,7 +110,9 @@ func ConfigGetter(e config.ExtraConfig) (Config, error) {
 		cfg.ClientMaxRate = cfg.ClientMaxRate * factor
 
 		if every > cfg.TTL {
-			cfg.TTL = time.Duration(int64((1 + 0.25*rand.Float64()) * float64(every)))
+			// we do not need crypto strength random number to generate some
+			// jitter in the duration, so we mark it to skipcq the check:
+			cfg.TTL = time.Duration(int64((1 + 0.25*rand.Float64()) * float64(every))) // skipcq: GSC-G404
 		}
 	}
 	cfg.NumShards = krakendrate.DefaultShards

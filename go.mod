@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/luraproject/lura/v2 v2.6.3
+	github.com/luraproject/lura/v2 v2.7.0
 )
 
 require (
@@ -28,10 +28,10 @@ require (
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/valyala/fastrand v1.1.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
