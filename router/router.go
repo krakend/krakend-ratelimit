@@ -11,7 +11,7 @@ import (
 	"math/rand"
 	"time"
 
-	krakendrate "github.com/krakendio/krakend-ratelimit/v3"
+	krakendrate "github.com/krakend/krakend-ratelimit/v3"
 	"github.com/luraproject/lura/v2/config"
 )
 
