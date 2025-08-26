@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/krakendio/krakend-ratelimit/v3/router"
+	"github.com/krakend/krakend-ratelimit/v3/router"
 )
 
 var ErrNotFound = errors.New("not found")
