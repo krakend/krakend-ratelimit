@@ -5,10 +5,10 @@ import (
 	"sync/atomic"
 	"testing"
 
-	krakendrate "github.com/krakend/krakend-ratelimit/v3"
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/proxy"
+	krakendrate "github.com/krakend/krakend-ratelimit/v4"
+	"github.com/luraproject/lura/v3/config"
+	"github.com/luraproject/lura/v3/logging"
+	"github.com/luraproject/lura/v3/proxy"
 )
 
 /*
