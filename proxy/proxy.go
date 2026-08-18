@@ -6,7 +6,7 @@ Sample backend extra config
 	...
 	"extra_config": {
 		...
-		"github.com/devopsfaith/krakend-ratelimit/rate/proxy": {
+		"qos/ratelimit/proxy": {
 			"max_rate": 100,
 			"capacity": 100
 		},
@@ -16,7 +16,7 @@ Sample backend extra config
 
 Adding the middleware to your proxy stack
 
-	import ratelimitproxy "github.com/krakend/krakend-ratelimit/v3/proxy"
+	import ratelimitproxy "github.com/krakend/krakend-ratelimit/v4/proxy"
 
 	...
 
@@ -39,11 +39,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/proxy"
+	"github.com/luraproject/lura/v3/config"
+	"github.com/luraproject/lura/v3/logging"
+	"github.com/luraproject/lura/v3/proxy"
 
-	krakendrate "github.com/krakend/krakend-ratelimit/v3"
+	krakendrate "github.com/krakend/krakend-ratelimit/v4"
 )
 
 // Namespace is the key to use to store and access the custom config data for the proxy
