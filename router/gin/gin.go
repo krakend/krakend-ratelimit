@@ -22,7 +22,8 @@ var HandlerFactory = NewRateLimiterMw(logging.NoOp, krakendgin.EndpointHandler)
 // NewRateLimiterMw builds a rate limiting wrapper over the received handler factory.
 func NewRateLimiterMw(logger logging.Logger, next krakendgin.HandlerFactory) krakendgin.HandlerFactory {
 	return func(remote *config.EndpointConfig, p proxy.Proxy) gin.HandlerFunc {
-		logPrefix := "[ENDPOINT: " + remote.Endpoint + "][Ratelimit]"
+		logPrefix := fmt.Sprintf("[ENDPOINT: %s %s][Ratelimit]",
+			remote.Method, remote.Endpoint)
 		handlerFunc := next(remote, p)
 
 		cfg, err := router.ConfigGetter(remote.ExtraConfig)
